@@ -1,0 +1,75 @@
+{
+  "version": "0.1",
+  "root": {
+    "id": "screen-1",
+    "name": "ProfileScreen",
+    "type": "screen",
+    "size": { "width": 390, "height": 844 },
+    "background": "#FFFFFF",
+    "layout": {
+      "direction": "vertical",
+      "spacing": 16,
+      "alignment": "stretch",
+      "justify": "start",
+      "padding": { "top": 24, "right": 16, "bottom": 24, "left": 16 }
+    },
+    "children": [
+      {
+        "id": "title-1",
+        "type": "text",
+        "text": "Welcome back",
+        "fontSize": 24,
+        "fontWeight": 700,
+        "color": "#111111",
+        "textAlign": "left"
+      },
+      {
+        "id": "avatar-1",
+        "type": "image",
+        "src": "assets/avatar.png",
+        "fit": "cover",
+        "cornerRadius": 40,
+        "size": { "width": 80, "height": 80 }
+      },
+      {
+        "id": "card-1",
+        "name": "InfoCard",
+        "type": "frame",
+        "background": "#F5F5F7",
+        "cornerRadius": 12,
+        "layout": {
+          "direction": "vertical",
+          "spacing": 8,
+          "alignment": "start",
+          "justify": "start",
+          "padding": { "top": 16, "right": 16, "bottom": 16, "left": 16 }
+        },
+        "children": [
+          {
+            "id": "card-title",
+            "type": "text",
+            "text": "Account",
+            "fontSize": 16,
+            "fontWeight": 600,
+            "color": "#111111"
+          },
+          {
+            "id": "card-divider",
+            "type": "rectangle",
+            "fill": "#E5E5EA",
+            "size": { "height": 1 }
+          }
+        ]
+      },
+      {
+        "id": "cta-1",
+        "type": "button",
+        "label": "Continue",
+        "background": "#0A84FF",
+        "color": "#FFFFFF",
+        "cornerRadius": 12,
+        "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 }
+      }
+    ]
+  }
+}
