@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://figma2flutter/schemas/component_plan.schema.json",
+  "title": "ComponentPlan",
+  "description": "Component Plan v0.1 — a set of named Flutter components derived from Design IR. Reuses the Design IR node defs and adds a 'component' reference node.",
+  "type": "object",
+  "required": ["version", "rootComponent", "components"],
+  "properties": {
+    "version": { "const": "0.1" },
+    "rootComponent": { "type": "string" },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/component" }
+    }
+  },
+  "$defs": {
+    "component": {
+      "type": "object",
+      "required": ["name", "root"],
+      "properties": {
+        "name": { "type": "string" },
+        "root": {
+          "oneOf": [
+            { "$ref": "#/$defs/screen" },
+            { "$ref": "#/$defs/frame" }
+          ]
+        }
+      }
+    },
+    "color": {
+      "type": "string",
+      "pattern": "^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
+    },
+    "size": {
+      "type": "object",
+      "properties": {
+        "width": { "type": "number", "minimum": 0 },
+        "height": { "type": "number", "minimum": 0 }
+      }
+    },
+    "padding": {
+      "type": "object",
+      "required": ["top", "right", "bottom", "left"],
+      "properties": {
+        "top": { "type": "number", "minimum": 0 },
+        "right": { "type": "number", "minimum": 0 },
+        "bottom": { "type": "number", "minimum": 0 },
+        "left": { "type": "number", "minimum": 0 }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "required": ["direction"],
+      "properties": {
+        "direction": { "enum": ["vertical", "horizontal"] },
+        "spacing": { "type": "number", "minimum": 0 },
+        "alignment": { "enum": ["start", "center", "end", "stretch"] },
+        "justify": { "enum": ["start", "center", "end", "spaceBetween"] },
+        "padding": { "$ref": "#/$defs/padding" }
+      }
+    },
+    "screen": {
+      "type": "object",
+      "required": ["id", "type", "layout", "children"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "const": "screen" },
+        "size": { "$ref": "#/$defs/size" },
+        "background": { "$ref": "#/$defs/color" },
+        "layout": { "$ref": "#/$defs/layout" },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/node" }
+        }
+      }
+    },
+    "frame": {
+      "type": "object",
+      "required": ["id", "type", "layout", "children"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "const": "frame" },
+        "size": { "$ref": "#/$defs/size" },
+        "background": { "$ref": "#/$defs/color" },
+        "cornerRadius": { "type": "number", "minimum": 0 },
+        "layout": { "$ref": "#/$defs/layout" },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/node" }
+        }
+      }
+    },
+    "text": {
+      "type": "object",
+      "required": ["id", "type", "text"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "const": "text" },
+        "size": { "$ref": "#/$defs/size" },
+        "text": { "type": "string" },
+        "fontSize": { "type": "number", "minimum": 0 },
+        "fontWeight": { "type": "integer", "minimum": 100, "maximum": 900 },
+        "color": { "$ref": "#/$defs/color" },
+        "textAlign": { "enum": ["left", "center", "right"] }
+      }
+    },
+    "rectangle": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "const": "rectangle" },
+        "size": { "$ref": "#/$defs/size" },
+        "fill": { "$ref": "#/$defs/color" },
+        "cornerRadius": { "type": "number", "minimum": 0 }
+      }
+    },
+    "image": {
+      "type": "object",
+      "required": ["id", "type", "src"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "const": "image" },
+        "size": { "$ref": "#/$defs/size" },
+        "src": { "type": "string" },
+        "fit": { "enum": ["cover", "contain", "fill"] },
+        "cornerRadius": { "type": "number", "minimum": 0 }
+      }
+    },
+    "button": {
+      "type": "object",
+      "required": ["id", "type", "label"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "const": "button" },
+        "size": { "$ref": "#/$defs/size" },
+        "label": { "type": "string" },
+        "background": { "$ref": "#/$defs/color" },
+        "color": { "$ref": "#/$defs/color" },
+        "cornerRadius": { "type": "number", "minimum": 0 },
+        "padding": { "$ref": "#/$defs/padding" }
+      }
+    },
+    "componentRef": {
+      "type": "object",
+      "required": ["type", "ref"],
+      "properties": {
+        "type": { "const": "component" },
+        "ref": { "type": "string" }
+      }
+    },
+    "node": {
+      "oneOf": [
+        { "$ref": "#/$defs/frame" },
+        { "$ref": "#/$defs/text" },
+        { "$ref": "#/$defs/rectangle" },
+        { "$ref": "#/$defs/image" },
+        { "$ref": "#/$defs/button" },
+        { "$ref": "#/$defs/componentRef" }
+      ]
+    }
+  }
+}

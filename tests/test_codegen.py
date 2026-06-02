@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from agent import codegen
+from agent import codegen, planner
 from agent.codegen import _class_name, _color, _edge_insets
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -29,6 +29,11 @@ def _check_snapshot(name: str, actual: str) -> None:
     assert actual == expected, f"snapshot mismatch: {name}"
 
 
+def _gen(ir: dict) -> str:
+    """Render IR end-to-end through the deterministic planner + codegen."""
+    return codegen.generate(planner.plan(ir))
+
+
 def _screen(children: list[dict], **screen_overrides: Any) -> dict:
     root: dict[str, Any] = {
         "id": "s",
@@ -42,12 +47,12 @@ def _screen(children: list[dict], **screen_overrides: Any) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Snapshot tests
+# Snapshot tests (IR -> plan -> Dart)
 # ---------------------------------------------------------------------------
 
 
 def test_snapshot_minimal_screen() -> None:
-    _check_snapshot("minimal_screen.dart", codegen.generate(_screen([])))
+    _check_snapshot("minimal_screen.dart", _gen(_screen([])))
 
 
 def test_snapshot_text_styled() -> None:
@@ -64,7 +69,7 @@ def test_snapshot_text_styled() -> None:
             }
         ]
     )
-    _check_snapshot("text_styled.dart", codegen.generate(ir))
+    _check_snapshot("text_styled.dart", _gen(ir))
 
 
 def test_snapshot_rectangle_rounded() -> None:
@@ -79,7 +84,7 @@ def test_snapshot_rectangle_rounded() -> None:
             }
         ]
     )
-    _check_snapshot("rectangle_rounded.dart", codegen.generate(ir))
+    _check_snapshot("rectangle_rounded.dart", _gen(ir))
 
 
 def test_snapshot_image_rounded() -> None:
@@ -95,7 +100,7 @@ def test_snapshot_image_rounded() -> None:
             }
         ]
     )
-    _check_snapshot("image_rounded.dart", codegen.generate(ir))
+    _check_snapshot("image_rounded.dart", _gen(ir))
 
 
 def test_snapshot_button_styled() -> None:
@@ -112,7 +117,7 @@ def test_snapshot_button_styled() -> None:
             }
         ]
     )
-    _check_snapshot("button_styled.dart", codegen.generate(ir))
+    _check_snapshot("button_styled.dart", _gen(ir))
 
 
 def test_snapshot_nested_frame() -> None:
@@ -134,13 +139,66 @@ def test_snapshot_nested_frame() -> None:
             }
         ]
     )
-    _check_snapshot("nested_frame.dart", codegen.generate(ir))
+    _check_snapshot("nested_frame.dart", _gen(ir))
 
 
 def test_snapshot_full_sample() -> None:
     with open(ROOT / "examples" / "design_ir_sample.json") as f:
         ir = json.load(f)
-    _check_snapshot("profile_screen.dart", codegen.generate(ir))
+    _check_snapshot("profile_screen.dart", _gen(ir))
+
+
+def test_snapshot_named_frame_extracted_into_component() -> None:
+    """A named frame becomes its own widget; the screen references it."""
+    out = _gen(
+        _screen(
+            [
+                {
+                    "id": "card",
+                    "name": "InfoCard",
+                    "type": "frame",
+                    "layout": {"direction": "vertical"},
+                    "children": [{"id": "t", "type": "text", "text": "Hi"}],
+                }
+            ]
+        )
+    )
+    assert "class TestScreen extends StatelessWidget" in out
+    assert "class InfoCard extends StatelessWidget" in out
+    assert "const InfoCard()" in out
+
+
+def test_snapshot_handwritten_multi_component_plan() -> None:
+    """codegen renders a Component Plan with a reference node directly."""
+    plan = {
+        "version": "0.1",
+        "rootComponent": "HomeScreen",
+        "components": [
+            {
+                "name": "HomeScreen",
+                "root": {
+                    "id": "s",
+                    "type": "screen",
+                    "layout": {"direction": "vertical", "spacing": 8},
+                    "children": [
+                        {"id": "t", "type": "text", "text": "Home"},
+                        {"type": "component", "ref": "Card"},
+                    ],
+                },
+            },
+            {
+                "name": "Card",
+                "root": {
+                    "id": "c",
+                    "type": "frame",
+                    "background": "#EEEEEE",
+                    "layout": {"direction": "vertical"},
+                    "children": [{"id": "ct", "type": "text", "text": "Card body"}],
+                },
+            },
+        ],
+    }
+    _check_snapshot("two_components.dart", codegen.generate(plan))
 
 
 # ---------------------------------------------------------------------------
@@ -149,44 +207,45 @@ def test_snapshot_full_sample() -> None:
 
 
 def test_class_name_uses_screen_name() -> None:
-    out = codegen.generate(_screen([], name="MyScreen"))
+    out = _gen(_screen([], name="MyScreen"))
     assert "class MyScreen extends StatelessWidget" in out
 
 
 def test_class_name_capitalizes_lowercase() -> None:
-    out = codegen.generate(_screen([], name="login"))
+    out = _gen(_screen([], name="login"))
     assert "class Login extends StatelessWidget" in out
 
 
 def test_class_name_strips_invalid_chars() -> None:
-    out = codegen.generate(_screen([], name="Login Screen!"))
+    out = _gen(_screen([], name="Login Screen!"))
     assert "class LoginScreen extends StatelessWidget" in out
 
 
 def test_class_name_falls_back_when_invalid() -> None:
-    out = codegen.generate(_screen([], name="123-bad"))
+    out = _gen(_screen([], name="123-bad"))
     assert "class GeneratedScreen extends StatelessWidget" in out
 
 
 # ---------------------------------------------------------------------------
-# Error handling
+# Error handling (codegen consumes a Component Plan)
 # ---------------------------------------------------------------------------
 
 
-def test_unsupported_version_raises() -> None:
-    with pytest.raises(ValueError, match="unsupported IR version"):
-        codegen.generate({"version": "0.2", "root": {"type": "screen"}})
+def test_unsupported_plan_version_raises() -> None:
+    with pytest.raises(ValueError, match="unsupported plan version"):
+        codegen.generate({"version": "0.2", "components": []})
 
 
-def test_non_screen_root_raises() -> None:
-    with pytest.raises(ValueError, match="screen"):
-        codegen.generate({"version": "0.1", "root": {"type": "frame"}})
+def test_empty_components_raises() -> None:
+    with pytest.raises(ValueError, match="no components"):
+        codegen.generate({"version": "0.1", "rootComponent": "X", "components": []})
 
 
 def test_unsupported_child_type_raises() -> None:
-    ir = _screen([{"id": "x", "type": "vector"}])
+    plan = planner.plan(_screen([]))
+    plan["components"][0]["root"]["children"] = [{"id": "x", "type": "vector"}]
     with pytest.raises(ValueError, match="unsupported IR node type"):
-        codegen.generate(ir)
+        codegen.generate(plan)
 
 
 # ---------------------------------------------------------------------------

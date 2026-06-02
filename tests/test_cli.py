@@ -47,7 +47,13 @@ def test_writes_dart_file_for_sample(
     text = out.read_text()
     assert text.startswith("import 'package:flutter/material.dart';")
     assert "class ProfileScreen extends StatelessWidget" in text
-    assert capsys.readouterr().out.strip() == f"Generated: {out}"
+    plan_path = out.parent / "component_plan.generated.json"
+    assert plan_path.exists()
+    plan = json.loads(plan_path.read_text())
+    assert plan["rootComponent"] == "ProfileScreen"
+    stdout = capsys.readouterr().out
+    assert f"Generated: {out}" in stdout
+    assert f"Plan: {plan_path}" in stdout
 
 
 def test_creates_parent_directories(tmp_path: Path) -> None:
@@ -519,6 +525,7 @@ def test_save_run_repair_produces_exact_spec_layout(
     expected = {
         "input_figma.json",
         "design_ir.json",
+        "component_plan.json",
         "generated_before.dart",
         "validation_before.log",
         "generated_after.dart",
@@ -597,6 +604,46 @@ def test_save_run_disabled_by_default(tmp_path: Path) -> None:
     rc = cli.main(["--input", str(SAMPLE), "--output", str(out), "--runs-dir", str(runs_dir)])
     assert rc == 0
     assert not runs_dir.exists()
+
+
+def test_llm_flag_without_client_errors_clearly(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    out = tmp_path / "x.dart"
+    rc = cli.main(["--input", str(SAMPLE), "--output", str(out), "--llm"])
+    assert rc == 1
+    assert "no LLM client" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_llm_flag_uses_llm_planner(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    plan_json = json.dumps(
+        {
+            "version": "0.1",
+            "rootComponent": "ProfileScreen",
+            "components": [
+                {
+                    "name": "ProfileScreen",
+                    "root": {
+                        "id": "s",
+                        "type": "screen",
+                        "layout": {"direction": "vertical"},
+                        "children": [{"id": "t", "type": "text", "text": "Hi"}],
+                    },
+                }
+            ],
+        }
+    )
+    client = FakeLLM(responses=[plan_json])
+    monkeypatch.setattr(cli, "_make_llm_client", lambda: client)
+
+    out = tmp_path / "x.dart"
+    rc = cli.main(["--input", str(SAMPLE), "--output", str(out), "--llm"])
+    assert rc == 0
+    assert len(client.calls) == 1
+    assert "class ProfileScreen extends StatelessWidget" in out.read_text()
 
 
 def test_make_llm_client_returns_stub_by_default() -> None:

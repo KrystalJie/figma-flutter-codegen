@@ -33,34 +33,7 @@ class ProfileScreen extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Color(0xFFF5F5F7),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    spacing: 8,
-                    children: [
-                      Text(
-                        'Account',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF111111),
-                        ),
-                      ),
-                      Container(
-                        height: 1,
-                        color: Color(0xFFE5E5EA),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              const InfoCard(),
               ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
@@ -77,6 +50,42 @@ class ProfileScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class InfoCard extends StatelessWidget {
+  const InfoCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Color(0xFFF5F5F7),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          spacing: 8,
+          children: [
+            Text(
+              'Account',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF111111),
+              ),
+            ),
+            Container(
+              height: 1,
+              color: Color(0xFFE5E5EA),
+            ),
+          ],
         ),
       ),
     );

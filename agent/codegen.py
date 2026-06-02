@@ -5,8 +5,13 @@ from typing import Any
 HEADER = "import 'package:flutter/material.dart';"
 
 
-def generate(ir: dict) -> str:
-    """Convert Design IR v0.1 into a Flutter StatelessWidget source file.
+def generate(plan: dict) -> str:
+    """Convert a Component Plan v0.1 into a Flutter source file.
+
+    Each component becomes its own StatelessWidget class in a single file.
+    A component reference node (`{"type": "component", "ref": <name>}`)
+    renders as `const <Name>()`, so the screen stays small and the extracted
+    components are reusable.
 
     Notes:
       - All images render as Image.network regardless of src origin. The
@@ -15,17 +20,24 @@ def generate(ir: dict) -> str:
         Flutter, so cornerRadius forces a BoxDecoration even when only the
         radius is set.
     """
-    if ir.get("version") != "0.1":
-        raise ValueError(f"unsupported IR version: {ir.get('version')!r}")
-    root = ir["root"]
-    if root.get("type") != "screen":
-        raise ValueError(f"root must be a screen, got {root.get('type')!r}")
-    class_name = _class_name(root.get("name"))
-    body = _emit_screen(root)
+    if plan.get("version") != "0.1":
+        raise ValueError(f"unsupported plan version: {plan.get('version')!r}")
+    components = plan.get("components")
+    if not components:
+        raise ValueError("plan has no components")
+    blocks = [_emit_component(c) for c in components]
+    return f"{HEADER}\n\n" + "\n".join(blocks)
+
+
+def _emit_component(component: dict) -> str:
+    class_name = _class_name(component.get("name"))
+    root = component["root"]
+    if root.get("type") == "screen":
+        body = _emit_screen(root)
+    else:
+        body = _emit_node(root)
     body_inline = _embed(body, 4)
     return (
-        f"{HEADER}\n"
-        "\n"
         f"class {class_name} extends StatelessWidget {{\n"
         f"  const {class_name}({{super.key}});\n"
         "\n"
@@ -60,6 +72,8 @@ def _emit_node(node: dict) -> str:
         return _emit_image(node)
     if t == "button":
         return _emit_button(node)
+    if t == "component":
+        return f"const {_class_name(node['ref'])}()"
     raise ValueError(f"unsupported IR node type: {t!r}")
 
 

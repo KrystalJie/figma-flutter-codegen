@@ -62,6 +62,12 @@ class RunLogger:
         self._files["design_ir"] = "design_ir.json"
         return path
 
+    def save_plan(self, plan: dict) -> Path:
+        path = self.dir / "component_plan.json"
+        path.write_text(json.dumps(plan, indent=2, ensure_ascii=False))
+        self._files["component_plan"] = "component_plan.json"
+        return path
+
     def save_generated_before(self, dart: str) -> Path:
         return self._save_text("generated_before", "generated_before.dart", dart)
 

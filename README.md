@@ -7,12 +7,28 @@ See [claudecode.md](claudecode.md) for the full spec, MVP scope, and development
 ## Layout
 
 ```
-agent/      pipeline modules (cli, figma_client, ir_parser, planner, codegen, validator, repair)
-schemas/    Design IR JSON schema
+agent/      pipeline modules (cli, figma_client, ir_parser, planner, codegen, validator, repair, llm)
+schemas/    Design IR + Component Plan JSON schemas
 examples/   sample Figma JSON, sample Design IR, sample generated Dart
 flutter_app/ Flutter app shell (target for generated code)
 tests/      pytest suite
 ```
+
+## Pipeline
+
+```
+Figma JSON → Design IR → Component Plan → Flutter code → validate → repair
+```
+
+The **planner** turns Design IR into a Component Plan: each named frame is lifted
+into its own component so codegen emits one small `StatelessWidget` per component
+instead of one giant `build`. Every run writes `component_plan.generated.json`
+next to `--output`.
+
+By default the planner is **deterministic** (rule-based). Pass `--llm` to use an
+LLM planner instead — this requires a real `LLMClient` (see `agent/llm.py`); the
+default `StubLLMClient` fails loudly and tests use a fake client, so the LLM path
+is fully optional and never runs in CI.
 
 ## Quickstart
 

@@ -91,8 +91,9 @@ figma2flutter-agent/
 6. Add CLI.
 7. Add Flutter app shell.
 8. Add `flutter analyze` validator.
-9. Add LLM planner/codegen.
+9. Add deterministic planner + Component Plan layer (IR → Plan → codegen). Done: `schemas/component_plan.schema.json`, `agent/planner.py`.
 10. Add repair loop.
+11. Add optional LLM planner (`--llm`, interface via `agent/llm.py`). Real provider not wired yet; default stays deterministic.
 
 ## Definition of Done for MVP
 

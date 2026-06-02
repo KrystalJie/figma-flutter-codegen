@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from agent import codegen, ir_parser, repair, validator
+from agent import codegen, ir_parser, planner, repair, validator
 from agent.repair import LLMClient, StubLLMClient
 from agent.run_logger import RunLogger
 from agent.validator import ValidationResult
@@ -36,6 +36,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--input", required=True, help="Path to Figma node JSON")
     parser.add_argument("--output", required=True, help="Path to write generated Dart file")
+    parser.add_argument(
+        "--llm",
+        action="store_true",
+        help="Use the LLM planner instead of the deterministic planner (requires a real LLMClient).",
+    )
     parser.add_argument(
         "--validate",
         action="store_true",
@@ -75,11 +80,13 @@ def main(argv: list[str] | None = None) -> int:
             print("error: --max-repair-attempts must be >= 1", file=sys.stderr)
             return 1
 
+    client = _make_llm_client()
     try:
         with open(args.input) as f:
             figma = json.load(f)
         ir = ir_parser.parse(figma)
-        dart = codegen.generate(ir)
+        plan = planner.plan_with_llm(ir, client) if args.llm else planner.plan(ir)
+        dart = codegen.generate(plan)
     except FileNotFoundError as exc:
         print(f"error: input file not found: {exc.filename}", file=sys.stderr)
         return 1
@@ -89,6 +96,9 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
+    except NotImplementedError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
@@ -96,7 +106,10 @@ def main(argv: list[str] | None = None) -> int:
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(dart)
+    plan_path = out_path.parent / "component_plan.generated.json"
+    plan_path.write_text(json.dumps(plan, indent=2, ensure_ascii=False))
     print(f"Generated: {out_path}")
+    print(f"Plan: {plan_path}")
 
     logger: RunLogger | None = None
     if args.save_run:
@@ -104,6 +117,7 @@ def main(argv: list[str] | None = None) -> int:
         logger = RunLogger(args.runs_dir, slug=slug)
         logger.save_input_figma(figma)
         logger.save_ir(ir)
+        logger.save_plan(plan)
         logger.save_generated_before(dart)
 
     success = False
@@ -127,7 +141,6 @@ def main(argv: list[str] | None = None) -> int:
             print("Validation: failed", file=sys.stderr)
             return 2
 
-        client = _make_llm_client()
         for attempt in range(1, args.max_repair_attempts + 1):
             repair_attempts = attempt
             print(f"Repair attempt {attempt}/{args.max_repair_attempts}...")

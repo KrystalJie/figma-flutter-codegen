@@ -1,32 +1,9 @@
 from __future__ import annotations
 
-from typing import Protocol
-
+from agent.llm import LLMClient, StubLLMClient, strip_code_fence
 from agent.validator import ValidationResult
 
-
-class LLMClient(Protocol):
-    """Minimal LLM interface used by the repair loop.
-
-    Implementations take a single prompt string and return the model's
-    completion. Tests substitute a fake client so no network calls happen.
-    """
-
-    def complete(self, prompt: str) -> str: ...
-
-
-class StubLLMClient:
-    """Default LLMClient placeholder used until a real provider is wired up.
-
-    Implements the protocol but refuses to do work, so `--repair` fails
-    loudly with a clear message instead of silently doing nothing.
-    """
-
-    def complete(self, prompt: str) -> str:
-        raise NotImplementedError(
-            "no LLM client is configured; --repair requires a real "
-            "LLMClient implementation"
-        )
+__all__ = ["LLMClient", "StubLLMClient", "build_prompt", "repair"]
 
 
 _PROMPT_TEMPLATE = """\
@@ -70,23 +47,9 @@ def repair(
 
     prompt = build_prompt(dart_source, result)
     response = client.complete(prompt)
-    repaired = _strip_code_fence(response).strip()
+    repaired = strip_code_fence(response).strip()
     if not repaired:
         raise ValueError("LLM returned empty repair response")
     if not repaired.endswith("\n"):
         repaired += "\n"
     return repaired
-
-
-def _strip_code_fence(text: str) -> str:
-    """Remove a single wrapping ```...``` fence if present."""
-    stripped = text.strip()
-    if not stripped.startswith("```"):
-        return text
-    first_newline = stripped.find("\n")
-    if first_newline == -1:
-        return text
-    body = stripped[first_newline + 1 :]
-    if body.endswith("```"):
-        body = body[: -len("```")]
-    return body
