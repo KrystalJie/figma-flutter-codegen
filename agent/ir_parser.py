@@ -83,9 +83,9 @@ def _relative_position(child: dict, origin: dict) -> dict | None:
 
 def _parse_child(node: dict, warnings: list[str]) -> dict | None:
     t = node.get("type")
-    # INSTANCE/GROUP are frame-like containers in real Figma files: they
-    # carry a `children` array, so we recurse into them as frames.
-    if t in ("FRAME", "INSTANCE", "GROUP"):
+    # INSTANCE/GROUP/COMPONENT(_SET) are frame-like containers in real Figma
+    # files: they carry a `children` array, so we recurse into them as frames.
+    if t in ("FRAME", "INSTANCE", "GROUP", "COMPONENT", "COMPONENT_SET"):
         return _parse_frame(node, warnings)
     if t == "TEXT":
         return _parse_text(node)

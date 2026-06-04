@@ -173,6 +173,23 @@ def test_instance_and_group_parse_as_frames() -> None:
     assert children[1]["children"][0]["type"] == "rectangle"
 
 
+def test_component_and_component_set_parse_as_frames() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "comp",
+                "type": "COMPONENT",
+                "name": "Button",
+                "children": [{"id": "t", "type": "TEXT", "characters": "Go"}],
+            },
+            {"id": "cs", "type": "COMPONENT_SET", "children": []},
+        ]
+    )
+    children = ir_parser.parse(fig)["root"]["children"]
+    assert [c["type"] for c in children] == ["frame", "frame"]
+    assert children[0]["children"][0]["text"] == "Go"
+
+
 def test_ellipse_parses_with_fill_and_border() -> None:
     fig = _frame(
         children=[

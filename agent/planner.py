@@ -65,11 +65,59 @@ def plan(ir: dict) -> dict:
     root_name = claim(root.get("name"), "GeneratedScreen")
     root_component = {"name": root_name, "root": extract(root)}
     components.insert(0, root_component)
+    components = _dedupe(components, root_name)
     return {
         "version": PLAN_VERSION,
         "rootComponent": root_name,
         "components": components,
     }
+
+
+def _dedupe(components: list[dict], root_name: str) -> list[dict]:
+    """Merge structurally-identical components into one reusable widget.
+
+    Figma instances of the same component produce identical subtrees (they
+    differ only by id/position). Collapsing them removes duplicate classes
+    like Card2/Card3 and rewrites every reference to the canonical name.
+    Runs to a fixed point so nested duplicates collapse too.
+    """
+    while True:
+        seen: dict[str, str] = {}
+        alias: dict[str, str] = {}
+        for comp in components:
+            key = _struct_key(comp["root"])
+            if key in seen and comp["name"] != root_name:
+                alias[comp["name"]] = seen[key]
+            else:
+                seen.setdefault(key, comp["name"])
+        if not alias:
+            return components
+        components = [c for c in components if c["name"] not in alias]
+        for comp in components:
+            _rewrite_refs(comp["root"], alias)
+
+
+def _struct_key(node: dict) -> str:
+    """Canonical signature of a node ignoring identity/placement fields."""
+    return json.dumps(_canonical(node), sort_keys=True)
+
+
+def _canonical(node: dict) -> dict:
+    out: dict[str, Any] = {}
+    for k, v in node.items():
+        if k in ("id", "position"):
+            continue
+        out[k] = [_canonical(c) for c in v] if k == "children" else v
+    return out
+
+
+def _rewrite_refs(node: dict, alias: dict[str, str]) -> None:
+    for child in node.get("children", []):
+        if child.get("type") == "component":
+            if child.get("ref") in alias:
+                child["ref"] = alias[child["ref"]]
+        else:
+            _rewrite_refs(child, alias)
 
 
 # ---------------------------------------------------------------------------

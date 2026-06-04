@@ -117,6 +117,29 @@ def test_duplicate_names_get_numeric_suffix() -> None:
     assert refs == ["Card", "Card2"]
 
 
+def test_identical_instances_are_deduped_into_one_component() -> None:
+    # Same structure (text/size), differing only by id + position — like four
+    # Figma instances of one component placed at different y offsets.
+    def block(id_: str, y: int) -> dict:
+        f = _frame(id_, [{"id": id_ + "t", "type": "text", "text": "Header"}], name="Card")
+        f["position"] = {"x": 0, "y": y}
+        return f
+
+    ir = _screen(
+        [block("a", 0), block("b", 100), block("c", 200)],
+        layout={"direction": "stack"},
+    )
+    plan = planner.plan(ir)
+    # Only one Card component remains (plus the Home root).
+    assert [c["name"] for c in plan["components"]] == ["Home", "Card"]
+    # All three references point to the same canonical component.
+    refs = [ch["ref"] for ch in plan["components"][0]["root"]["children"]]
+    assert refs == ["Card", "Card", "Card"]
+    # Positions are preserved on the references.
+    ys = [ch["position"]["y"] for ch in plan["components"][0]["root"]["children"]]
+    assert ys == [0, 100, 200]
+
+
 def test_plan_output_feeds_codegen() -> None:
     with open(ROOT / "examples" / "design_ir_sample.json") as f:
         ir = json.load(f)

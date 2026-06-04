@@ -66,17 +66,17 @@ class ProfilePosts extends StatelessWidget {
             Positioned(
               left: 16,
               top: 548,
-              child: const ContentContentBlockSmall2(),
+              child: const ContentContentBlockSmall(),
             ),
             Positioned(
               left: 16,
               top: 641,
-              child: const ContentContentBlockSmall3(),
+              child: const ContentContentBlockSmall(),
             ),
             Positioned(
               left: 16,
               top: 734,
-              child: const ContentContentBlockSmall4(),
+              child: const ContentContentBlockSmall(),
             ),
             Positioned(
               left: 0,
@@ -474,207 +474,6 @@ class SegmentedControlLeft extends StatelessWidget {
 
 class ContentContentBlockSmall extends StatelessWidget {
   const ContentContentBlockSmall({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 343,
-      height: 77.0000228881836,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            top: 0,
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Color(0xFFF6F6F6),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 66,
-            top: 0,
-            child: Text(
-              'Header',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF000000),
-              ),
-              textAlign: TextAlign.left,
-            ),
-          ),
-          Positioned(
-            left: 293,
-            top: 2,
-            child: Text(
-              '8m ago',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFFBDBDBD),
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
-          Positioned(
-            left: 66,
-            top: 27,
-            child: Text(
-              'He\'ll want to use your yacht, and I don\'t want this thing smelling like fish.',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF000000),
-              ),
-              textAlign: TextAlign.left,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ContentContentBlockSmall2 extends StatelessWidget {
-  const ContentContentBlockSmall2({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 343,
-      height: 77.0000228881836,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            top: 0,
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Color(0xFFF6F6F6),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 66,
-            top: 0,
-            child: Text(
-              'Header',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF000000),
-              ),
-              textAlign: TextAlign.left,
-            ),
-          ),
-          Positioned(
-            left: 293,
-            top: 2,
-            child: Text(
-              '8m ago',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFFBDBDBD),
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
-          Positioned(
-            left: 66,
-            top: 27,
-            child: Text(
-              'He\'ll want to use your yacht, and I don\'t want this thing smelling like fish.',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF000000),
-              ),
-              textAlign: TextAlign.left,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ContentContentBlockSmall3 extends StatelessWidget {
-  const ContentContentBlockSmall3({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 343,
-      height: 77.0000228881836,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            top: 0,
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Color(0xFFF6F6F6),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 66,
-            top: 0,
-            child: Text(
-              'Header',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF000000),
-              ),
-              textAlign: TextAlign.left,
-            ),
-          ),
-          Positioned(
-            left: 293,
-            top: 2,
-            child: Text(
-              '8m ago',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFFBDBDBD),
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
-          Positioned(
-            left: 66,
-            top: 27,
-            child: Text(
-              'He\'ll want to use your yacht, and I don\'t want this thing smelling like fish.',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF000000),
-              ),
-              textAlign: TextAlign.left,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ContentContentBlockSmall4 extends StatelessWidget {
-  const ContentContentBlockSmall4({super.key});
 
   @override
   Widget build(BuildContext context) {
