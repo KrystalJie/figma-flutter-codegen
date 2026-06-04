@@ -116,6 +116,135 @@ def test_parse_rectangle_child() -> None:
     }
 
 
+def test_rectangle_stroke_becomes_border() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "r1",
+                "type": "RECTANGLE",
+                "strokes": [
+                    {"type": "SOLID", "color": {"r": 0.9, "g": 0.9, "b": 0.92, "a": 1}}
+                ],
+                "strokeWeight": 2,
+            }
+        ]
+    )
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert child["border"] == {"color": "#E6E6EB", "width": 2}
+
+
+def test_frame_stroke_becomes_border() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "f1",
+                "type": "FRAME",
+                "layoutMode": "VERTICAL",
+                "strokes": [
+                    {"type": "SOLID", "color": {"r": 0, "g": 0, "b": 0, "a": 1}}
+                ],
+                "children": [],
+            }
+        ]
+    )
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert child["border"] == {"color": "#000000"}
+
+
+def test_instance_and_group_parse_as_frames() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "inst",
+                "type": "INSTANCE",
+                "name": "Card",
+                "children": [{"id": "t", "type": "TEXT", "characters": "Hi"}],
+            },
+            {
+                "id": "grp",
+                "type": "GROUP",
+                "children": [{"id": "r", "type": "RECTANGLE"}],
+            },
+        ]
+    )
+    children = ir_parser.parse(fig)["root"]["children"]
+    assert [c["type"] for c in children] == ["frame", "frame"]
+    assert children[0]["children"][0] == {"id": "t", "type": "text", "text": "Hi"}
+    assert children[1]["children"][0]["type"] == "rectangle"
+
+
+def test_ellipse_parses_with_fill_and_border() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "e1",
+                "type": "ELLIPSE",
+                "absoluteBoundingBox": {"width": 80, "height": 80},
+                "fills": [{"type": "SOLID", "color": {"r": 1, "g": 0, "b": 0, "a": 1}}],
+                "strokes": [
+                    {"type": "SOLID", "color": {"r": 1, "g": 1, "b": 1, "a": 1}}
+                ],
+                "strokeWeight": 4,
+            }
+        ]
+    )
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert child == {
+        "id": "e1",
+        "type": "ellipse",
+        "size": {"width": 80, "height": 80},
+        "fill": "#FF0000",
+        "border": {"color": "#FFFFFF", "width": 4},
+    }
+
+
+def test_image_fill_extracted_on_ellipse() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "e1",
+                "type": "ELLIPSE",
+                "absoluteBoundingBox": {"width": 80, "height": 80},
+                "fills": [
+                    {"type": "IMAGE", "scaleMode": "FILL", "imageRef": "abc123"}
+                ],
+            }
+        ]
+    )
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert child["imageRef"] == "abc123"
+    assert child["imageFit"] == "cover"
+
+
+def test_image_fill_extracted_on_rectangle() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "r1",
+                "type": "RECTANGLE",
+                "fills": [
+                    {"type": "IMAGE", "scaleMode": "FIT", "imageRef": "deadbeef"}
+                ],
+            }
+        ]
+    )
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert child["imageRef"] == "deadbeef"
+    assert child["imageFit"] == "contain"
+
+
+def test_no_image_fill_means_no_image_ref() -> None:
+    fig = _frame(children=[{"id": "r1", "type": "RECTANGLE"}])
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert "imageRef" not in child
+
+
+def test_no_stroke_means_no_border() -> None:
+    fig = _frame(children=[{"id": "r1", "type": "RECTANGLE"}])
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert "border" not in child
+
+
 def test_parse_image_child() -> None:
     fig = _frame(
         children=[
@@ -144,15 +273,68 @@ def test_image_missing_src_raises() -> None:
         ir_parser.parse(fig)
 
 
-def test_unsupported_type_raises() -> None:
+def test_unsupported_type_is_skipped_and_warned() -> None:
     fig = _frame(children=[{"id": "v1", "type": "VECTOR"}])
-    with pytest.raises(ValueError, match="unsupported"):
-        ir_parser.parse(fig)
+    warnings: list[str] = []
+    out = ir_parser.parse(fig, warnings)
+    assert out["root"]["children"] == []
+    assert any("v1" in w and "VECTOR" in w for w in warnings)
 
 
-def test_frame_without_layout_mode_raises() -> None:
-    with pytest.raises(ValueError, match="layoutMode"):
-        ir_parser.parse({"id": "1", "type": "FRAME", "children": []})
+def test_frame_without_layout_mode_falls_back_to_stack() -> None:
+    warnings: list[str] = []
+    out = ir_parser.parse({"id": "1", "type": "FRAME", "children": []}, warnings)
+    assert out["root"]["layout"] == {"direction": "stack"}
+    assert any("auto-layout" in w for w in warnings)
+
+
+def test_stack_children_get_relative_position() -> None:
+    fig = {
+        "id": "root",
+        "type": "FRAME",
+        "absoluteBoundingBox": {"x": 100, "y": 200, "width": 300, "height": 600},
+        "children": [
+            {
+                "id": "t",
+                "type": "TEXT",
+                "characters": "Hi",
+                "absoluteBoundingBox": {"x": 116, "y": 232, "width": 50, "height": 20},
+            }
+        ],
+    }
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert child["position"] == {"x": 16, "y": 32}
+
+
+def test_autolayout_children_have_no_position() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "t",
+                "type": "TEXT",
+                "characters": "Hi",
+                "absoluteBoundingBox": {"x": 10, "y": 20, "width": 50, "height": 20},
+            }
+        ]
+    )
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert "position" not in child
+
+
+def test_stack_child_without_box_has_no_position() -> None:
+    fig = {
+        "id": "root",
+        "type": "FRAME",
+        "absoluteBoundingBox": {"x": 0, "y": 0, "width": 300, "height": 600},
+        "children": [{"id": "t", "type": "TEXT", "characters": "Hi"}],
+    }
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert "position" not in child
+
+
+def test_root_non_frame_still_raises() -> None:
+    with pytest.raises(ValueError, match="root must be a FRAME"):
+        ir_parser.parse({"id": "1", "type": "TEXT", "characters": "x"})
 
 
 def test_nested_frame_recurses() -> None:

@@ -48,7 +48,12 @@ def plan(ir: dict) -> dict:
             if child.get("type") == "frame" and child.get("name"):
                 comp_name = claim(child.get("name"), "Component")
                 components.append({"name": comp_name, "root": extract(child)})
-                new_children.append({"type": "component", "ref": comp_name})
+                ref: dict = {"type": "component", "ref": comp_name}
+                # Preserve absolute position so a Stack parent can place the
+                # referenced component with a Positioned wrapper.
+                if "position" in child:
+                    ref["position"] = child["position"]
+                new_children.append(ref)
             elif child.get("type") == "frame":
                 new_children.append(extract(child))
             else:

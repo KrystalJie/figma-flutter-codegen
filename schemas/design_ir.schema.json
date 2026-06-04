@@ -31,11 +31,28 @@
         "left": { "type": "number", "minimum": 0 }
       }
     },
+    "border": {
+      "type": "object",
+      "required": ["color"],
+      "properties": {
+        "color": { "$ref": "#/$defs/color" },
+        "width": { "type": "number", "minimum": 0 }
+      }
+    },
+    "position": {
+      "type": "object",
+      "description": "Offset from the parent's top-left, used under stack layout.",
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      }
+    },
     "layout": {
       "type": "object",
       "required": ["direction"],
       "properties": {
-        "direction": { "enum": ["vertical", "horizontal"] },
+        "direction": { "enum": ["vertical", "horizontal", "stack"] },
         "spacing": { "type": "number", "minimum": 0 },
         "alignment": { "enum": ["start", "center", "end", "stretch"] },
         "justify": { "enum": ["start", "center", "end", "spaceBetween"] },
@@ -48,6 +65,7 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
+        "position": { "$ref": "#/$defs/position" },
         "type": { "const": "screen" },
         "size": { "$ref": "#/$defs/size" },
         "background": { "$ref": "#/$defs/color" },
@@ -64,10 +82,15 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
+        "position": { "$ref": "#/$defs/position" },
         "type": { "const": "frame" },
         "size": { "$ref": "#/$defs/size" },
         "background": { "$ref": "#/$defs/color" },
         "cornerRadius": { "type": "number", "minimum": 0 },
+        "border": { "$ref": "#/$defs/border" },
+        "imageRef": { "type": "string" },
+        "imageFit": { "enum": ["cover", "contain", "fill"] },
+        "imageAsset": { "type": "string" },
         "layout": { "$ref": "#/$defs/layout" },
         "children": {
           "type": "array",
@@ -81,6 +104,7 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
+        "position": { "$ref": "#/$defs/position" },
         "type": { "const": "text" },
         "size": { "$ref": "#/$defs/size" },
         "text": { "type": "string" },
@@ -96,10 +120,15 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
+        "position": { "$ref": "#/$defs/position" },
         "type": { "const": "rectangle" },
         "size": { "$ref": "#/$defs/size" },
         "fill": { "$ref": "#/$defs/color" },
-        "cornerRadius": { "type": "number", "minimum": 0 }
+        "cornerRadius": { "type": "number", "minimum": 0 },
+        "border": { "$ref": "#/$defs/border" },
+        "imageRef": { "type": "string" },
+        "imageFit": { "enum": ["cover", "contain", "fill"] },
+        "imageAsset": { "type": "string" }
       }
     },
     "image": {
@@ -108,11 +137,28 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
+        "position": { "$ref": "#/$defs/position" },
         "type": { "const": "image" },
         "size": { "$ref": "#/$defs/size" },
         "src": { "type": "string" },
         "fit": { "enum": ["cover", "contain", "fill"] },
         "cornerRadius": { "type": "number", "minimum": 0 }
+      }
+    },
+    "ellipse": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "position": { "$ref": "#/$defs/position" },
+        "type": { "const": "ellipse" },
+        "size": { "$ref": "#/$defs/size" },
+        "fill": { "$ref": "#/$defs/color" },
+        "border": { "$ref": "#/$defs/border" },
+        "imageRef": { "type": "string" },
+        "imageFit": { "enum": ["cover", "contain", "fill"] },
+        "imageAsset": { "type": "string" }
       }
     },
     "button": {
@@ -121,6 +167,7 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
+        "position": { "$ref": "#/$defs/position" },
         "type": { "const": "button" },
         "size": { "$ref": "#/$defs/size" },
         "label": { "type": "string" },
@@ -135,6 +182,7 @@
         { "$ref": "#/$defs/frame" },
         { "$ref": "#/$defs/text" },
         { "$ref": "#/$defs/rectangle" },
+        { "$ref": "#/$defs/ellipse" },
         { "$ref": "#/$defs/image" },
         { "$ref": "#/$defs/button" }
       ]

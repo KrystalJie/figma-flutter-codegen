@@ -107,6 +107,53 @@ def test_missing_required_args_exits_2() -> None:
     assert exc_info.value.code == 2
 
 
+def test_figma_url_fetches_and_saves_raw(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    figma = json.loads(SAMPLE.read_text())
+    raw = {"nodes": {"1:1": {"document": figma}}}
+
+    def fake_fetch(file_key: str, node_id: str, token: object) -> tuple[dict, dict]:
+        assert (file_key, node_id) == ("KEY", "1:1")
+        return figma, raw
+
+    monkeypatch.setattr(cli.figma_client, "fetch_node", fake_fetch)
+    out = tmp_path / "generated.dart"
+    rc = cli.main(
+        [
+            "--figma-url",
+            "https://www.figma.com/design/KEY/App?node-id=1-1",
+            "--figma-token",
+            "tok",
+            "--output",
+            str(out),
+        ]
+    )
+    assert rc == 0
+    assert "class ProfileScreen" in out.read_text()
+    raw_path = out.parent / "figma_raw.json"
+    assert json.loads(raw_path.read_text()) == raw
+    assert f"Raw Figma: {raw_path}" in capsys.readouterr().out
+
+
+def test_figma_url_without_node_id_returns_1(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    out = tmp_path / "out.dart"
+    rc = cli.main(
+        ["--figma-url", "https://figma.com/file/KEY/App", "--output", str(out)]
+    )
+    assert rc == 1
+    assert "node-id" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_input_and_figma_url_mutually_exclusive() -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        cli.main(["--input", "x.json", "--figma-url", "y", "--output", "o.dart"])
+    assert exc_info.value.code == 2
+
+
 def test_cli_smoke(tmp_path: Path) -> None:
     output = tmp_path / "generated.dart"
     rc = cli.main(["--input", str(SAMPLE), "--output", str(output)])

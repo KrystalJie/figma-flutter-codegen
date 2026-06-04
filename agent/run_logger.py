@@ -50,6 +50,12 @@ class RunLogger:
         self._files[key] = filename
         return path
 
+    def save_raw_figma(self, raw: dict) -> Path:
+        path = self.dir / "figma_raw.json"
+        path.write_text(json.dumps(raw, indent=2, ensure_ascii=False))
+        self._files["figma_raw"] = "figma_raw.json"
+        return path
+
     def save_input_figma(self, figma: dict) -> Path:
         path = self.dir / "input_figma.json"
         path.write_text(json.dumps(figma, indent=2, ensure_ascii=False))

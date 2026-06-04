@@ -5,7 +5,8 @@ import json
 import sys
 from pathlib import Path
 
-from agent import codegen, ir_parser, planner, repair, validator
+from agent import codegen, figma_client, images, ir_parser, planner, repair, validator
+from agent.figma_client import FigmaError
 from agent.repair import LLMClient, StubLLMClient
 from agent.run_logger import RunLogger
 from agent.validator import ValidationResult
@@ -21,6 +22,51 @@ def _make_llm_client() -> LLMClient:
     return StubLLMClient()
 
 
+def _load_figma(args: argparse.Namespace) -> tuple[dict, dict | None]:
+    """Load the Figma node tree from a local file or the Figma API.
+
+    Returns (document_node, raw_response). raw_response is the full API
+    payload when fetched over the network, or None for a local --input file.
+    """
+    if args.figma_url:
+        file_key, node_id = figma_client.parse_figma_url(args.figma_url)
+        if not node_id:
+            raise FigmaError("the Figma URL must include a node-id=... parameter")
+        return figma_client.fetch_node(file_key, node_id, args.figma_token)
+    with open(args.input) as f:
+        return json.load(f), None
+
+
+def _maybe_download_images(
+    args: argparse.Namespace, ir: dict, warnings: list[str]
+) -> None:
+    """Download Figma image fills and wire them into the IR + pubspec.
+
+    Only runs for a --figma-url source. Failures are non-fatal: a warning is
+    recorded and generation continues without the images.
+    """
+    if not args.figma_url:
+        return
+    refs = images.collect_image_refs(ir)
+    if not refs:
+        return
+    file_key, _ = figma_client.parse_figma_url(args.figma_url)
+    try:
+        asset_map = images.download_image_fills(
+            file_key, args.figma_token, refs, args.flutter_root
+        )
+    except FigmaError as exc:
+        warnings.append(f"image download failed: {exc}")
+        return
+    if asset_map:
+        images.attach_image_assets(ir, asset_map)
+        images.ensure_pubspec_assets(Path(args.flutter_root) / "pubspec.yaml")
+        print(f"Downloaded {len(asset_map)} image(s) to {args.flutter_root}/assets/images/")
+    missing = refs - set(asset_map)
+    if missing:
+        warnings.append(f"{len(missing)} image fill(s) had no downloadable URL")
+
+
 def _run_validate(flutter_root: str) -> ValidationResult | None:
     try:
         return validator.validate(flutter_root)
@@ -34,7 +80,16 @@ def main(argv: list[str] | None = None) -> int:
         prog="agent.cli",
         description="Convert a Figma node JSON file into a Flutter screen.",
     )
-    parser.add_argument("--input", required=True, help="Path to Figma node JSON")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--input", help="Path to a local Figma node JSON file")
+    source.add_argument(
+        "--figma-url",
+        help="Figma file/design URL with a node-id (fetched via the Figma API)",
+    )
+    parser.add_argument(
+        "--figma-token",
+        help="Figma access token (defaults to the FIGMA_TOKEN env var)",
+    )
     parser.add_argument("--output", required=True, help="Path to write generated Dart file")
     parser.add_argument(
         "--llm",
@@ -81,10 +136,12 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
     client = _make_llm_client()
+    raw: dict | None = None
+    warnings: list[str] = []
     try:
-        with open(args.input) as f:
-            figma = json.load(f)
-        ir = ir_parser.parse(figma)
+        figma, raw = _load_figma(args)
+        ir = ir_parser.parse(figma, warnings)
+        _maybe_download_images(args, ir, warnings)
         plan = planner.plan_with_llm(ir, client) if args.llm else planner.plan(ir)
         dart = codegen.generate(plan)
     except FileNotFoundError as exc:
@@ -96,12 +153,18 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
+    except FigmaError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
     except NotImplementedError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
+
+    for w in warnings:
+        print(f"warning: {w}", file=sys.stderr)
 
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -111,10 +174,18 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Generated: {out_path}")
     print(f"Plan: {plan_path}")
 
+    # Persist the raw Figma response next to the output for debugging (7.3).
+    if raw is not None:
+        raw_path = out_path.parent / "figma_raw.json"
+        raw_path.write_text(json.dumps(raw, indent=2, ensure_ascii=False))
+        print(f"Raw Figma: {raw_path}")
+
     logger: RunLogger | None = None
     if args.save_run:
         slug = _slug_from_ir(ir)
         logger = RunLogger(args.runs_dir, slug=slug)
+        if raw is not None:
+            logger.save_raw_figma(raw)
         logger.save_input_figma(figma)
         logger.save_ir(ir)
         logger.save_plan(plan)

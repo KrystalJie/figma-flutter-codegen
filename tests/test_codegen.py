@@ -87,6 +87,131 @@ def test_snapshot_rectangle_rounded() -> None:
     _check_snapshot("rectangle_rounded.dart", _gen(ir))
 
 
+def test_rectangle_border_renders_box_decoration() -> None:
+    ir = _screen(
+        [
+            {
+                "id": "r",
+                "type": "rectangle",
+                "fill": "#FFFFFF",
+                "border": {"color": "#E5E5EA", "width": 1},
+                "size": {"width": 100, "height": 40},
+            }
+        ]
+    )
+    dart = _gen(ir)
+    assert "decoration: BoxDecoration(" in dart
+    assert "border: Border.all(" in dart
+    assert "color: Color(0xFFE5E5EA)" in dart
+    assert "width: 1" in dart
+
+
+def test_frame_border_without_radius_uses_decoration() -> None:
+    ir = _screen(
+        [
+            {
+                "id": "f",
+                "type": "frame",
+                "border": {"color": "#000000"},
+                "layout": {"direction": "vertical"},
+                "children": [],
+            }
+        ]
+    )
+    dart = _gen(ir)
+    assert "decoration: BoxDecoration(" in dart
+    assert "border: Border.all(" in dart
+    assert "color: Color(0xFF000000)" in dart
+    # width is optional; omitted here, so no width arg should appear
+    assert "width:" not in dart
+
+
+def test_stack_layout_emits_positioned_children() -> None:
+    ir = _screen(
+        [
+            {
+                "id": "t",
+                "type": "text",
+                "text": "Hi",
+                "position": {"x": 16, "y": 32},
+            }
+        ],
+        layout={"direction": "stack"},
+    )
+    dart = _gen(ir)
+    assert "Stack(" in dart
+    assert "Positioned(" in dart
+    assert "left: 16" in dart
+    assert "top: 32" in dart
+    assert "Column(" not in dart
+
+
+def test_stack_child_without_position_is_not_wrapped() -> None:
+    ir = _screen(
+        [{"id": "t", "type": "text", "text": "Hi"}],
+        layout={"direction": "stack"},
+    )
+    dart = _gen(ir)
+    assert "Stack(" in dart
+    assert "Positioned(" not in dart
+
+
+def test_ellipse_with_image_renders_decoration_image() -> None:
+    ir = _screen(
+        [
+            {
+                "id": "e",
+                "type": "ellipse",
+                "size": {"width": 80, "height": 80},
+                "imageAsset": "assets/images/abc.png",
+                "imageFit": "cover",
+            }
+        ]
+    )
+    dart = _gen(ir)
+    assert "shape: BoxShape.circle" in dart
+    assert "image: DecorationImage(" in dart
+    assert "image: AssetImage('assets/images/abc.png')" in dart
+    assert "fit: BoxFit.cover" in dart
+
+
+def test_rectangle_with_image_renders_decoration_image() -> None:
+    ir = _screen(
+        [
+            {
+                "id": "r",
+                "type": "rectangle",
+                "size": {"width": 100, "height": 100},
+                "imageAsset": "assets/images/x.png",
+                "imageFit": "contain",
+            }
+        ]
+    )
+    dart = _gen(ir)
+    assert "decoration: BoxDecoration(" in dart
+    assert "AssetImage('assets/images/x.png')" in dart
+    assert "fit: BoxFit.contain" in dart
+
+
+def test_ellipse_renders_circle_container() -> None:
+    ir = _screen(
+        [
+            {
+                "id": "e",
+                "type": "ellipse",
+                "size": {"width": 80, "height": 80},
+                "fill": "#FF0000",
+                "border": {"color": "#FFFFFF", "width": 4},
+            }
+        ]
+    )
+    dart = _gen(ir)
+    assert "shape: BoxShape.circle" in dart
+    assert "color: Color(0xFFFF0000)" in dart
+    assert "border: Border.all(" in dart
+    assert "width: 80" in dart
+
+
 def test_snapshot_image_rounded() -> None:
     ir = _screen(
         [

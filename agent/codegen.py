@@ -17,8 +17,8 @@ def generate(plan: dict) -> str:
       - All images render as Image.network regardless of src origin. The
         codegen will not distinguish asset paths from URLs in this version.
       - Container.color and Container.decoration are mutually exclusive in
-        Flutter, so cornerRadius forces a BoxDecoration even when only the
-        radius is set.
+        Flutter, so cornerRadius or a border forces a BoxDecoration even when
+        only one of them is set.
     """
     if plan.get("version") != "0.1":
         raise ValueError(f"unsupported plan version: {plan.get('version')!r}")
@@ -68,6 +68,8 @@ def _emit_node(node: dict) -> str:
         return _emit_text(node)
     if t == "rectangle":
         return _emit_rectangle(node)
+    if t == "ellipse":
+        return _emit_ellipse(node)
     if t == "image":
         return _emit_image(node)
     if t == "button":
@@ -79,6 +81,18 @@ def _emit_node(node: dict) -> str:
 
 def _emit_layout(node: dict) -> str:
     layout = node["layout"]
+    children = node.get("children", [])
+    if layout["direction"] == "stack":
+        body = _emit_stack(children)
+    else:
+        body = _emit_flex(layout, children)
+    pad = layout.get("padding")
+    if pad and any(pad.get(k) for k in ("top", "right", "bottom", "left")):
+        return _wrap_padding(body, pad)
+    return body
+
+
+def _emit_flex(layout: dict, children: list[dict]) -> str:
     widget = "Column" if layout["direction"] == "vertical" else "Row"
     args: list[str] = []
     if "alignment" in layout:
@@ -87,44 +101,66 @@ def _emit_layout(node: dict) -> str:
         args.append(f"mainAxisAlignment: MainAxisAlignment.{layout['justify']}")
     if layout.get("spacing"):
         args.append(f"spacing: {_num(layout['spacing'])}")
+    args.append(_children_arg(children))
+    return _call(widget, args)
 
-    children = node.get("children", [])
-    if children:
-        items = ",\n".join("  " + _embed(_emit_node(c), 2) for c in children)
-        args.append(f"children: [\n{items},\n]")
-    else:
-        args.append("children: <Widget>[]")
 
-    column_or_row = _call(widget, args)
-    pad = layout.get("padding")
-    if pad and any(pad.get(k) for k in ("top", "right", "bottom", "left")):
-        return _wrap_padding(column_or_row, pad)
-    return column_or_row
+def _emit_stack(children: list[dict]) -> str:
+    """Render absolutely-positioned children inside a Stack.
+
+    Children carrying a `position` are wrapped in `Positioned`; any without
+    fall back to the Stack's default top-left placement.
+    """
+    items = [_emit_stack_child(c) for c in children]
+    return _call("Stack", [_children_arg(children, items)])
+
+
+def _emit_stack_child(node: dict) -> str:
+    inner = _emit_node(node)
+    pos = node.get("position")
+    if not pos:
+        return inner
+    args: list[str] = []
+    if pos.get("x") is not None:
+        args.append(f"left: {_num(pos['x'])}")
+    if pos.get("y") is not None:
+        args.append(f"top: {_num(pos['y'])}")
+    args.append(f"child: {inner}")
+    return _call("Positioned", args)
+
+
+def _children_arg(children: list[dict], rendered: list[str] | None = None) -> str:
+    if not children:
+        return "children: <Widget>[]"
+    items = rendered if rendered is not None else [_emit_node(c) for c in children]
+    body = ",\n".join("  " + _embed(item, 2) for item in items)
+    return f"children: [\n{body},\n]"
 
 
 def _emit_frame(node: dict) -> str:
     inner = _emit_layout(node)
     size = node.get("size") or {}
-    bg = node.get("background")
-    radius = node.get("cornerRadius")
     has_w = size.get("width") is not None
     has_h = size.get("height") is not None
-    if not (bg or radius or has_w or has_h):
+    fill_args = _box_fill_args(
+        node.get("background"),
+        node.get("cornerRadius"),
+        node.get("border"),
+        _image_of(node),
+    )
+    if not (fill_args or has_w or has_h):
         return inner
     args: list[str] = []
     if has_w:
         args.append(f"width: {_num(size['width'])}")
     if has_h:
         args.append(f"height: {_num(size['height'])}")
-    if bg and not radius:
-        args.append(f"color: {_color(bg)}")
-    if radius:
-        deco_args: list[str] = []
-        if bg:
-            deco_args.append(f"color: {_color(bg)}")
-        deco_args.append(f"borderRadius: BorderRadius.circular({_num(radius)})")
-        args.append("decoration: " + _call("BoxDecoration", deco_args))
     args.append(f"child: {inner}")
+    # A Container with only width/height triggers the sized_box_for_whitespace
+    # lint; use a SizedBox when there is no fill/decoration to apply.
+    if not fill_args:
+        return _call("SizedBox", args)
+    args[-1:-1] = fill_args
     return _call("Container", args)
 
 
@@ -146,24 +182,90 @@ def _emit_text(node: dict) -> str:
 
 def _emit_rectangle(node: dict) -> str:
     size = node.get("size") or {}
-    fill = node.get("fill")
-    radius = node.get("cornerRadius")
     args: list[str] = []
     if size.get("width") is not None:
         args.append(f"width: {_num(size['width'])}")
     if size.get("height") is not None:
         args.append(f"height: {_num(size['height'])}")
-    if fill and not radius:
-        args.append(f"color: {_color(fill)}")
-    if radius:
-        deco_args: list[str] = []
-        if fill:
-            deco_args.append(f"color: {_color(fill)}")
-        deco_args.append(f"borderRadius: BorderRadius.circular({_num(radius)})")
-        args.append("decoration: " + _call("BoxDecoration", deco_args))
+    args.extend(
+        _box_fill_args(
+            node.get("fill"),
+            node.get("cornerRadius"),
+            node.get("border"),
+            _image_of(node),
+        )
+    )
     if not args:
         args.append("color: Color(0x00000000)")
     return _call("Container", args)
+
+
+def _emit_ellipse(node: dict) -> str:
+    size = node.get("size") or {}
+    args: list[str] = []
+    if size.get("width") is not None:
+        args.append(f"width: {_num(size['width'])}")
+    if size.get("height") is not None:
+        args.append(f"height: {_num(size['height'])}")
+    deco_args: list[str] = ["shape: BoxShape.circle"]
+    fill = node.get("fill")
+    if fill:
+        deco_args.append(f"color: {_color(fill)}")
+    image = _image_of(node)
+    if image:
+        deco_args.append(f"image: {_decoration_image(image)}")
+    border = node.get("border")
+    if border:
+        deco_args.append(f"border: {_border(border)}")
+    args.append("decoration: " + _call("BoxDecoration", deco_args))
+    return _call("Container", args)
+
+
+def _box_fill_args(
+    fill: str | None, radius: Any, border: dict | None, image: dict | None = None
+) -> list[str]:
+    """Container args for a flat fill / corner radius / border / image fill.
+
+    A plain `color:` is used when only a flat fill is present; otherwise a
+    BoxDecoration carries the fill, image, radius, and border together (color
+    and decoration cannot both be set on a Container).
+    """
+    if not radius and not border and not image:
+        return [f"color: {_color(fill)}"] if fill else []
+    deco_args: list[str] = []
+    if fill:
+        deco_args.append(f"color: {_color(fill)}")
+    if image:
+        deco_args.append(f"image: {_decoration_image(image)}")
+    if radius:
+        deco_args.append(f"borderRadius: BorderRadius.circular({_num(radius)})")
+    if border:
+        deco_args.append(f"border: {_border(border)}")
+    return ["decoration: " + _call("BoxDecoration", deco_args)]
+
+
+def _image_of(node: dict) -> dict | None:
+    asset = node.get("imageAsset")
+    if not asset:
+        return None
+    return {"asset": asset, "fit": node.get("imageFit", "cover")}
+
+
+def _decoration_image(image: dict) -> str:
+    return _call(
+        "DecorationImage",
+        [
+            f"image: AssetImage({_dart_str(image['asset'])})",
+            f"fit: BoxFit.{image['fit']}",
+        ],
+    )
+
+
+def _border(border: dict) -> str:
+    args = [f"color: {_color(border['color'])}"]
+    if border.get("width") is not None:
+        args.append(f"width: {_num(border['width'])}")
+    return _call("Border.all", args)
 
 
 def _emit_image(node: dict) -> str:

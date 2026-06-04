@@ -74,6 +74,19 @@ def test_named_frame_is_extracted_and_referenced() -> None:
     assert info["children"][0]["text"] == "x"
 
 
+def test_component_ref_preserves_position() -> None:
+    card = _frame(
+        "card", [{"id": "t", "type": "text", "text": "x"}], name="InfoCard"
+    )
+    card["position"] = {"x": 12, "y": 34}
+    ir = _screen([card], layout={"direction": "stack"})
+    plan = planner.plan(ir)
+    root = next(c for c in plan["components"] if c["name"] == "Home")["root"]
+    assert root["children"] == [
+        {"type": "component", "ref": "InfoCard", "position": {"x": 12, "y": 34}}
+    ]
+
+
 def test_unnamed_frame_stays_inline() -> None:
     ir = _screen([_frame("card", [{"id": "t", "type": "text", "text": "x"}])])
     plan = planner.plan(ir)
