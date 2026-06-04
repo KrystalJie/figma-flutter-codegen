@@ -290,6 +290,41 @@ def test_image_missing_src_raises() -> None:
         ir_parser.parse(fig)
 
 
+def test_rounded_filled_vector_becomes_rectangle() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "bg",
+                "type": "VECTOR",
+                "name": "BG",
+                "cornerRadius": 100,
+                "absoluteBoundingBox": {"width": 171, "height": 46},
+                "fills": [{"type": "SOLID", "color": {"r": 1, "g": 1, "b": 1, "a": 1}}],
+            }
+        ]
+    )
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert child["type"] == "rectangle"
+    assert child["cornerRadius"] == 100
+    assert child["fill"] == "#FFFFFF"
+
+
+def test_icon_vector_without_corner_radius_is_skipped() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "icon",
+                "type": "VECTOR",
+                "fills": [{"type": "SOLID", "color": {"r": 0, "g": 0, "b": 0, "a": 1}}],
+            }
+        ]
+    )
+    warnings: list[str] = []
+    out = ir_parser.parse(fig, warnings)
+    assert out["root"]["children"] == []
+    assert any("VECTOR" in w for w in warnings)
+
+
 def test_unsupported_type_is_skipped_and_warned() -> None:
     fig = _frame(children=[{"id": "v1", "type": "VECTOR"}])
     warnings: list[str] = []

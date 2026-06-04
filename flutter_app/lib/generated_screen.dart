@@ -124,7 +124,20 @@ class Battery extends StatelessWidget {
       width: 24.32803726196289,
       height: 11.333333015441895,
       child: Stack(
-        children: <Widget>[],
+        children: [
+          Positioned(
+            left: 2,
+            top: 2,
+            child: Container(
+              width: 18,
+              height: 7.333333492279053,
+              decoration: BoxDecoration(
+                color: Color(0xFFFFFFFF),
+                borderRadius: BorderRadius.circular(1.3333333730697632),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -349,6 +362,18 @@ class LeftSelected extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
+            left: 0,
+            top: 0,
+            child: Container(
+              width: 171.5,
+              height: 46,
+              decoration: BoxDecoration(
+                color: Color(0xFFFFFFFF),
+                borderRadius: BorderRadius.circular(100),
+              ),
+            ),
+          ),
+          Positioned(
             left: 64,
             top: 14,
             child: Text(
@@ -381,6 +406,18 @@ class RightSelected extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
+            left: 0,
+            top: 0,
+            child: Container(
+              width: 171.5,
+              height: 46,
+              decoration: BoxDecoration(
+                color: Color(0xFFFFFFFF),
+                borderRadius: BorderRadius.circular(100),
+              ),
+            ),
+          ),
+          Positioned(
             left: 59,
             top: 14,
             child: Text(
@@ -409,6 +446,22 @@ class SegmentedControlStructure extends StatelessWidget {
       height: 50,
       child: Stack(
         children: [
+          Positioned(
+            left: 0,
+            top: 0,
+            child: Container(
+              width: 343,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Color(0xFFF6F6F6),
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(
+                  color: Color(0xFFE8E8E8),
+                  width: 1,
+                ),
+              ),
+            ),
+          ),
           Positioned(
             left: 228,
             top: 16,

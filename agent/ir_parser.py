@@ -95,7 +95,23 @@ def _parse_child(node: dict, warnings: list[str]) -> dict | None:
         return _parse_ellipse(node)
     if t == "IMAGE":
         return _parse_image(node)
+    if t == "VECTOR":
+        return _parse_vector(node, warnings)
     warnings.append(f"skipped unsupported node {node.get('id')!r} of type {t!r}")
+    return None
+
+
+def _parse_vector(node: dict, warnings: list[str]) -> dict | None:
+    """Best-effort VECTOR handling.
+
+    A VECTOR with a cornerRadius and a solid fill is almost always a
+    decorative rounded-rect background (a pill/track/card), so we render it
+    as a rectangle. True icon vectors (no cornerRadius) carry arbitrary path
+    geometry we cannot reproduce, so they are still skipped.
+    """
+    if node.get("cornerRadius") is not None and _solid_fill(node) is not None:
+        return _parse_rectangle(node)
+    warnings.append(f"skipped unsupported node {node.get('id')!r} of type 'VECTOR'")
     return None
 
 
