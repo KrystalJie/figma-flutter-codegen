@@ -127,6 +127,16 @@ class BG extends StatelessWidget {
               color: AppColors.black,
             ),
           ),
+          Positioned(
+            left: 78,
+            top: 0,
+            child: Image.asset(
+              'assets/images/icon_I151_547_144_356_144_385.png',
+              width: 219,
+              height: 30,
+              fit: BoxFit.contain,
+            ),
+          ),
         ],
       ),
     );
@@ -143,6 +153,26 @@ class Battery extends StatelessWidget {
       height: 11.333333015441895,
       child: Stack(
         children: [
+          Positioned(
+            left: 0,
+            top: 0,
+            child: Image.asset(
+              'assets/images/icon_I151_547_144_356_144_388.png',
+              width: 22,
+              height: 11.333333015441895,
+              fit: BoxFit.contain,
+            ),
+          ),
+          Positioned(
+            left: 23,
+            top: 3.6666717529296875,
+            child: Image.asset(
+              'assets/images/icon_I151_547_144_356_144_389.png',
+              width: 1.328037977218628,
+              height: 4,
+              fit: BoxFit.contain,
+            ),
+          ),
           Positioned(
             left: 2,
             top: 2,
@@ -191,7 +221,18 @@ class LeftSide extends StatelessWidget {
       width: 28.42616844177246,
       height: 11.0888671875,
       child: Stack(
-        children: <Widget>[],
+        children: [
+          Positioned(
+            left: 0,
+            top: 0,
+            child: Image.asset(
+              'assets/images/icon_I151_547_144_356_144_401.png',
+              width: 28.42616844177246,
+              height: 11.0888671875,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -550,10 +591,22 @@ class ContentContentBlockSmall extends StatelessWidget {
           Positioned(
             left: 66,
             top: 27,
-            child: Text(
-              'He\'ll want to use your yacht, and I don\'t want this thing smelling like fish.',
-              style: AppTextStyles.s14w400.copyWith(color: AppColors.black),
-              textAlign: TextAlign.left,
+            child: SizedBox(
+              width: 269,
+              child: Text(
+                'He\'ll want to use your yacht, and I don\'t want this thing smelling like fish.',
+                style: AppTextStyles.s14w400.copyWith(color: AppColors.black),
+                textAlign: TextAlign.left,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 66,
+            top: 76.99997578388889,
+            child: Container(
+              width: 277,
+              height: 1,
+              color: AppColors.gray02,
             ),
           ),
         ],
