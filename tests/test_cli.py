@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from agent import cli, run_logger, validator
+from agent.llm import DeepSeekLLMClient, StubLLMClient
 from agent.repair import LLMClient
 from agent.validator import ValidationResult
 
@@ -36,6 +37,16 @@ def _stub_results(*results: ValidationResult) -> object:
 
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLE = ROOT / "examples" / "figma_sample.json"
+
+
+def test_make_llm_client_stub_without_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    assert isinstance(cli._make_llm_client(), StubLLMClient)
+
+
+def test_make_llm_client_deepseek_with_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-test")
+    assert isinstance(cli._make_llm_client(), DeepSeekLLMClient)
 
 
 def test_writes_dart_file_for_sample(

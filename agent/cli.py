@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -23,12 +24,17 @@ from agent.validator import ValidationResult
 
 
 def _make_llm_client() -> LLMClient:
-    """Return the LLM client used by --repair.
+    """Return the LLM client used by --llm/--repair.
 
-    Defaults to a stub that raises NotImplementedError when called. Tests
-    monkeypatch this to inject a fake. Replace with a real provider once
-    one is chosen.
+    Uses the real DeepSeek client when ``DEEPSEEK_API_KEY`` is set; otherwise
+    returns a stub that raises NotImplementedError when called, so
+    deterministic runs need no API key. Tests monkeypatch this (or the env
+    var) to inject a fake.
     """
+    if os.environ.get("DEEPSEEK_API_KEY"):
+        from agent.llm import DeepSeekLLMClient
+
+        return DeepSeekLLMClient()
     return StubLLMClient()
 
 
