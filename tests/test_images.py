@@ -63,6 +63,49 @@ def test_download_image_fills(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     assert (tmp_path / "assets" / "images" / "r1.png").exists()
 
 
+def test_collect_icon_ids_walks_tree() -> None:
+    ir = _ir(
+        {"id": "i1", "type": "icon", "size": {"width": 10, "height": 4}},
+        {
+            "id": "f",
+            "type": "frame",
+            "layout": {"direction": "stack"},
+            "children": [
+                {"id": "i2", "type": "icon"},
+                {"id": "t", "type": "text", "text": "x"},
+            ],
+        },
+    )
+    assert images.collect_icon_ids(ir) == ["i1", "i2"]
+
+
+def test_attach_icon_assets_sets_paths() -> None:
+    ir = _ir(
+        {"id": "i1", "type": "icon"},
+        {"id": "i2", "type": "icon"},
+    )
+    images.attach_icon_assets(ir, {"i1": "assets/images/icon_i1.png"})
+    kids = ir["root"]["children"]
+    assert kids[0]["iconAsset"] == "assets/images/icon_i1.png"
+    assert "iconAsset" not in kids[1]
+
+
+def test_download_icons(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        images.figma_client,
+        "fetch_node_images",
+        lambda *a, **k: {"I1;2": "https://x/a", "I3;4": None},
+    )
+    monkeypatch.setattr(
+        images.figma_client,
+        "download_file",
+        lambda url, dest: Path(dest).write_bytes(b"x"),
+    )
+    asset_map = images.download_icons("key", "tok", ["I1;2", "I3;4"], tmp_path)
+    assert asset_map == {"I1;2": "assets/images/icon_I1_2.png"}
+    assert (tmp_path / "assets" / "images" / "icon_I1_2.png").exists()
+
+
 def test_ensure_pubspec_assets_inserts_block(tmp_path: Path) -> None:
     pubspec = tmp_path / "pubspec.yaml"
     pubspec.write_text("flutter:\n  uses-material-design: true\n")

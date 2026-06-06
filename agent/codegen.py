@@ -89,6 +89,8 @@ def _emit_node(node: dict) -> str:
         return _emit_ellipse(node)
     if t == "image":
         return _emit_image(node)
+    if t == "icon":
+        return _emit_icon(node)
     if t == "button":
         return _emit_button(node)
     if t == "component":
@@ -197,6 +199,33 @@ def _emit_text(node: dict) -> str:
     if node.get("wrap") and size.get("width") is not None:
         return _call("SizedBox", [f"width: {_num(size['width'])}", f"child: {text}"])
     return text
+
+
+def _emit_icon(node: dict) -> str:
+    """An icon vector: render the rasterized asset, or reserve its space.
+
+    When the CLI rendered the vector (live --figma-url + token), `iconAsset`
+    holds the downloaded PNG path. Without it (e.g. a saved --input file), we
+    emit a same-size SizedBox so positions/layout stay correct.
+    """
+    size = node.get("size") or {}
+    w = size.get("width")
+    h = size.get("height")
+    asset = node.get("iconAsset")
+    if asset:
+        args = [_dart_str(asset)]
+        if w is not None:
+            args.append(f"width: {_num(w)}")
+        if h is not None:
+            args.append(f"height: {_num(h)}")
+        args.append("fit: BoxFit.contain")
+        return _call("Image.asset", args)
+    args = []
+    if w is not None:
+        args.append(f"width: {_num(w)}")
+    if h is not None:
+        args.append(f"height: {_num(h)}")
+    return _call("SizedBox", args) if args else "const SizedBox.shrink()"
 
 
 def _text_style_expr(size: Any, weight: Any, color: str | None) -> str | None:

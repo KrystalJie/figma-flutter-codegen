@@ -158,6 +158,33 @@ def test_stack_child_without_position_is_not_wrapped() -> None:
     assert "Positioned(" not in dart
 
 
+def test_icon_with_asset_renders_image_asset() -> None:
+    ir = _screen(
+        [
+            {
+                "id": "ic",
+                "type": "icon",
+                "size": {"width": 15, "height": 5},
+                "iconAsset": "assets/images/icon_ic.png",
+            }
+        ]
+    )
+    dart = _gen(ir)
+    assert "Image.asset(" in dart
+    assert "assets/images/icon_ic.png" in dart
+    assert "width: 15" in dart
+
+
+def test_icon_without_asset_reserves_space_with_sized_box() -> None:
+    ir = _screen(
+        [{"id": "ic", "type": "icon", "size": {"width": 15, "height": 5}}]
+    )
+    dart = _gen(ir)
+    assert "Image.asset(" not in dart
+    assert "SizedBox(" in dart
+    assert "width: 15" in dart
+
+
 def test_wrap_text_constrains_width_with_sized_box() -> None:
     ir = _screen(
         [

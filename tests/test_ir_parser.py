@@ -350,28 +350,30 @@ def test_diagonal_line_is_skipped() -> None:
     assert any("LINE" in w for w in warnings)
 
 
-def test_icon_vector_without_corner_radius_is_skipped() -> None:
+def test_icon_vector_without_corner_radius_becomes_icon_node() -> None:
     fig = _frame(
         children=[
             {
                 "id": "icon",
                 "type": "VECTOR",
+                "name": "Wifi",
+                "absoluteBoundingBox": {"width": 15, "height": 5},
                 "fills": [{"type": "SOLID", "color": {"r": 0, "g": 0, "b": 0, "a": 1}}],
             }
         ]
     )
-    warnings: list[str] = []
-    out = ir_parser.parse(fig, warnings)
-    assert out["root"]["children"] == []
-    assert any("VECTOR" in w for w in warnings)
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert child["type"] == "icon"
+    assert child["id"] == "icon"
+    assert child["size"] == {"width": 15, "height": 5}
 
 
 def test_unsupported_type_is_skipped_and_warned() -> None:
-    fig = _frame(children=[{"id": "v1", "type": "VECTOR"}])
+    fig = _frame(children=[{"id": "s1", "type": "SLICE"}])
     warnings: list[str] = []
     out = ir_parser.parse(fig, warnings)
     assert out["root"]["children"] == []
-    assert any("v1" in w and "VECTOR" in w for w in warnings)
+    assert any("s1" in w and "SLICE" in w for w in warnings)
 
 
 def test_frame_without_layout_mode_falls_back_to_stack() -> None:

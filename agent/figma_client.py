@@ -158,6 +158,37 @@ def fetch_node_image_url(
     return images.get(node_id) or next((u for u in images.values() if u), None)
 
 
+def fetch_node_images(
+    file_key: str,
+    node_ids: list[str],
+    token: str | None = None,
+    scale: float = 2.0,
+    fmt: str = "png",
+) -> dict[str, str]:
+    """Render several nodes at once via GET /v1/images/<key>.
+
+    Returns {node_id: url} for the ids Figma produced an image for. Same
+    endpoint as fetch_node_image_url, batched (one call for many ids).
+    """
+    ids = [i for i in node_ids if i]
+    if not ids:
+        return {}
+    auth = resolve_token(token)
+    joined = urllib.parse.quote(",".join(ids), safe=",")
+    url = f"{FIGMA_API}/images/{file_key}?ids={joined}&format={fmt}&scale={scale}"
+    req = urllib.request.Request(url, headers={"X-Figma-Token": auth})
+    try:
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise FigmaError(f"Figma API returned HTTP {exc.code}: {exc.reason}") from exc
+    except urllib.error.URLError as exc:
+        raise FigmaError(f"Figma API request failed: {exc.reason}") from exc
+    if data.get("err"):
+        raise FigmaError(f"Figma image render failed: {data['err']}")
+    return {nid: u for nid, u in (data.get("images") or {}).items() if u}
+
+
 def download_file(url: str, dest: str) -> None:
     """Download a URL to a local path (used for image-fill S3 links)."""
     try:

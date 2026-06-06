@@ -165,8 +165,14 @@ def _parse_vector(node: dict, warnings: list[str]) -> dict | None:
     """
     if node.get("cornerRadius") is not None and _solid_fill(node) is not None:
         return _parse_rectangle(node)
-    warnings.append(f"skipped unsupported node {node.get('id')!r} of type 'VECTOR'")
-    return None
+    # A true icon vector: keep it as an `icon` node carrying the Figma node id,
+    # so the CLI can rasterize it via the node-render API (needs a live file key
+    # + token). codegen renders the downloaded asset, or an empty placeholder of
+    # the same size when no asset is available (e.g. a saved --input file).
+    out: dict[str, Any] = {"id": node["id"], "type": "icon"}
+    _set_optional(out, "name", node.get("name"))
+    _set_optional(out, "size", _size(node))
+    return out
 
 
 def _parse_frame(node: dict, warnings: list[str]) -> dict:

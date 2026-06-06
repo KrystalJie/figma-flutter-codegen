@@ -94,6 +94,36 @@ def _maybe_download_images(
         warnings.append(f"{len(missing)} image fill(s) had no downloadable URL")
 
 
+def _maybe_download_icons(
+    args: argparse.Namespace, ir: dict, warnings: list[str]
+) -> None:
+    """Rasterize true-vector icons via the Figma node-render API + wire them in.
+
+    Only runs for a --figma-url source (needs a live file key + token).
+    Non-fatal: failures warn and generation continues with empty placeholders.
+    """
+    if not args.figma_url:
+        return
+    icon_ids = images.collect_icon_ids(ir)
+    if not icon_ids:
+        return
+    file_key, _ = figma_client.parse_figma_url(args.figma_url)
+    try:
+        asset_map = images.download_icons(
+            file_key, args.figma_token, icon_ids, args.flutter_root, args.figma_scale
+        )
+    except FigmaError as exc:
+        warnings.append(f"icon render failed: {exc}")
+        return
+    if asset_map:
+        images.attach_icon_assets(ir, asset_map)
+        images.ensure_pubspec_assets(Path(args.flutter_root) / "pubspec.yaml")
+        print(f"Rendered {len(asset_map)} icon(s) to {args.flutter_root}/assets/images/")
+    missing = len(icon_ids) - len(asset_map)
+    if missing:
+        warnings.append(f"{missing} icon(s) had no render URL (placeholder used)")
+
+
 _DEFAULT_SCREEN_SIZE = (375, 812)
 
 
@@ -280,6 +310,7 @@ def main(argv: list[str] | None = None) -> int:
         styles = figma_client.extract_styles(raw) if raw else None
         ir = ir_parser.parse(figma, warnings, styles=styles)
         _maybe_download_images(args, ir, warnings)
+        _maybe_download_icons(args, ir, warnings)
         plan = planner.plan_with_llm(ir, client) if args.llm else planner.plan(ir)
         dart = codegen.generate(plan)
     except FileNotFoundError as exc:

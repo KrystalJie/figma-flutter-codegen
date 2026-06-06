@@ -137,3 +137,28 @@ def test_fetch_node_image_url_none_when_no_image(
 ) -> None:
     _patch_urlopen(monkeypatch, {"images": {"1:2": None}, "err": None})
     assert figma_client.fetch_node_image_url("key", "1:2", "tok") is None
+
+
+def test_fetch_node_images_returns_url_map(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_urlopen(
+        monkeypatch,
+        {"images": {"a": "https://s3/a.png", "b": None}, "err": None},
+    )
+    out = figma_client.fetch_node_images("key", ["a", "b"], "tok")
+    assert out == {"a": "https://s3/a.png"}
+
+
+def test_fetch_node_images_empty_without_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # No ids -> no network call at all.
+    import urllib.request
+
+    monkeypatch.setattr(
+        urllib.request,
+        "urlopen",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("should not call")),
+    )
+    assert figma_client.fetch_node_images("key", [], "tok") == {}
