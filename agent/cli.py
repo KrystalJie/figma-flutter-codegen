@@ -212,7 +212,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--llm",
         action="store_true",
-        help="Use the LLM planner instead of the deterministic planner (requires a real LLMClient).",
+        help="(experimental) Use the LLM planner instead of the deterministic "
+        "planner. Flaky on large pages (plan JSON can truncate) and adds no "
+        "layout-quality gain today; prefer the deterministic planner. Repair "
+        "(--repair) is the supported LLM capability.",
     )
     parser.add_argument(
         "--validate",
@@ -227,7 +230,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--repair",
         action="store_true",
-        help="On validation failure, ask the LLM to repair the file and re-validate. Implies --validate.",
+        help="On validation failure, ask the LLM to repair the file and "
+        "re-validate (the primary LLM capability). Implies --validate.",
     )
     parser.add_argument(
         "--max-repair-attempts",
