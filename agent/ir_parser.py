@@ -149,6 +149,8 @@ def _parse_child(node: dict, warnings: list[str]) -> dict | None:
         return _parse_image(node)
     if t == "VECTOR":
         return _parse_vector(node, warnings)
+    if t == "LINE":
+        return _parse_line(node, warnings)
     warnings.append(f"skipped unsupported node {node.get('id')!r} of type {t!r}")
     return None
 
@@ -210,6 +212,33 @@ def _parse_rectangle(node: dict) -> dict:
     _set_optional(out, "border", _border(node))
     _apply_image_fill(out, node)
     return out
+
+
+def _parse_line(node: dict, warnings: list[str]) -> dict | None:
+    """An axis-aligned LINE (a divider/rule) -> a thin filled rectangle.
+
+    Figma LINEs carry a stroke (not a fill). A horizontal rule has height ~0
+    and a vertical rule has width ~0; we render it as a 1-thick rectangle the
+    length of the line, coloured by the stroke. Diagonal lines carry path
+    geometry we cannot reproduce, so they are still skipped.
+    """
+    color = _solid_stroke(node)
+    box = node.get("absoluteBoundingBox") or {}
+    w, h = box.get("width"), box.get("height")
+    weight = node.get("strokeWeight") or 1
+    if color is not None and w is not None and h is not None:
+        if h < 2 <= w:  # horizontal rule
+            size = {"width": w, "height": weight}
+        elif w < 2 <= h:  # vertical rule
+            size = {"width": weight, "height": h}
+        else:
+            size = None
+        if size is not None:
+            out: dict[str, Any] = {"id": node["id"], "type": "rectangle", "fill": color, "size": size}
+            _set_optional(out, "name", node.get("name"))
+            return out
+    warnings.append(f"skipped unsupported node {node.get('id')!r} of type 'LINE'")
+    return None
 
 
 def _parse_ellipse(node: dict) -> dict:

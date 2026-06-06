@@ -309,6 +309,47 @@ def test_rounded_filled_vector_becomes_rectangle() -> None:
     assert child["fill"] == "#FFFFFF"
 
 
+def test_horizontal_line_becomes_thin_rectangle() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "div",
+                "type": "LINE",
+                "name": "Divider Line",
+                "absoluteBoundingBox": {"width": 277, "height": 0},
+                "strokeWeight": 1,
+                "strokes": [
+                    {"type": "SOLID", "color": {"r": 0.91, "g": 0.91, "b": 0.91, "a": 1}}
+                ],
+            }
+        ]
+    )
+    [child] = ir_parser.parse(fig)["root"]["children"]
+    assert child["type"] == "rectangle"
+    assert child["size"] == {"width": 277, "height": 1}
+    assert child["fill"] == "#E8E8E8"
+
+
+def test_diagonal_line_is_skipped() -> None:
+    fig = _frame(
+        children=[
+            {
+                "id": "diag",
+                "type": "LINE",
+                "absoluteBoundingBox": {"width": 11, "height": 11},
+                "strokeWeight": 2,
+                "strokes": [
+                    {"type": "SOLID", "color": {"r": 0, "g": 0, "b": 0, "a": 1}}
+                ],
+            }
+        ]
+    )
+    warnings: list[str] = []
+    out = ir_parser.parse(fig, warnings)
+    assert out["root"]["children"] == []
+    assert any("LINE" in w for w in warnings)
+
+
 def test_icon_vector_without_corner_radius_is_skipped() -> None:
     fig = _frame(
         children=[
