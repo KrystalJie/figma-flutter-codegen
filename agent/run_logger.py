@@ -93,6 +93,12 @@ class RunLogger:
         self._files["visual_report"] = "visual_report.json"
         return path
 
+    def save_geometry_report(self, report: dict) -> Path:
+        path = self.dir / "geometry_report.json"
+        path.write_text(json.dumps(report, indent=2, ensure_ascii=False))
+        self._files["geometry_report"] = "geometry_report.json"
+        return path
+
     def save_visual_image(self, key: str, filename: str, src: str | Path) -> Path:
         dest = self.dir / filename
         shutil.copyfile(src, dest)

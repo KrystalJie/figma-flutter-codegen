@@ -480,3 +480,46 @@ def test_class_name_empty() -> None:
 def test_class_name_unicode_stripped_to_empty_falls_back() -> None:
     assert _class_name("___") == "___"  # underscores are valid identifier chars
     assert _class_name("...") == "GeneratedScreen"
+
+
+# ---------------------------------------------------------------------------
+# Opt-in node keying (for geometry rect capture)
+# ---------------------------------------------------------------------------
+
+
+def test_keyed_wraps_id_bearing_nodes() -> None:
+    ir = _screen([{"id": "1:1", "type": "text", "text": "Hi"}])
+    dart = codegen.generate(planner.plan(ir), keyed=True)
+    assert "KeyedSubtree(" in dart
+    assert "key: ValueKey('1:1')" in dart
+
+
+def test_keying_is_off_by_default() -> None:
+    ir = _screen([{"id": "1:1", "type": "text", "text": "Hi"}])
+    assert "KeyedSubtree(" not in codegen.generate(planner.plan(ir))
+
+
+def test_keyed_skips_component_references() -> None:
+    # A component reference renders as `const X()`; its id is not unique across
+    # deduped instances, so it must not be keyed.
+    plan = {
+        "version": "0.1",
+        "rootComponent": "Screen",
+        "components": [
+            {
+                "name": "Screen",
+                "root": {
+                    "id": "s",
+                    "type": "screen",
+                    "layout": {"direction": "vertical"},
+                    "children": [{"id": "ref", "type": "component", "ref": "Card"}],
+                },
+            },
+            {
+                "name": "Card",
+                "root": {"id": "c", "type": "rectangle", "size": {"width": 10, "height": 10}},
+            },
+        ],
+    }
+    dart = codegen.generate(plan, keyed=True)
+    assert "ValueKey('ref')" not in dart

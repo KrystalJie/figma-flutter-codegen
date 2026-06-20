@@ -47,3 +47,9 @@ app.*.map.json
 # Visual-validate golden capture artifacts (regenerated per run)
 /test/visual_golden_test.dart
 /test/visual_golden/
+
+# Geometry-validate rect-dump artifacts (regenerated per run)
+/test/visual_rects_test.dart
+/test/visual_rects/
+/lib/geometry_report.json
+/lib/*_keyed.dart

@@ -11,8 +11,14 @@ HEADER = "import 'package:flutter/material.dart';"
 # None (e.g. helpers called directly in tests) they emit plain literals.
 _active: Tokens | None = None
 
+# When True (opt-in via generate(keyed=True)), every id-bearing node is wrapped
+# in a KeyedSubtree(ValueKey(<figma id>)) so a render-time rect dump can map
+# each widget back to its Figma node. Off by default so normal output and the
+# codegen snapshot tests are unchanged.
+_keyed: bool = False
 
-def generate(plan: dict) -> str:
+
+def generate(plan: dict, *, keyed: bool = False) -> str:
     """Convert a Component Plan v0.1 into a Flutter source file.
 
     Each component becomes its own StatelessWidget class in a single file.
@@ -32,14 +38,16 @@ def generate(plan: dict) -> str:
     components = plan.get("components")
     if not components:
         raise ValueError("plan has no components")
-    global _active
+    global _active, _keyed
     color_names = (plan.get("tokens") or {}).get("colors") or {}
     _active = Tokens(color_names)
+    _keyed = keyed
     try:
         blocks = [_emit_component(c) for c in components]
         theme = _render_theme(_active)
     finally:
         _active = None
+        _keyed = False
     head = f"{HEADER}\n\n"
     if theme:
         head += theme + "\n\n"
@@ -78,6 +86,23 @@ def _emit_screen(node: dict) -> str:
 
 
 def _emit_node(node: dict) -> str:
+    return _maybe_key(node, _dispatch_node(node))
+
+
+def _maybe_key(node: dict, body: str) -> str:
+    """Wrap an emitted node in KeyedSubtree(ValueKey(id)) when keying is on.
+
+    Component references are left unkeyed: a deduped component is rendered at
+    several sites, so its id is not unique in the tree. Reused components still
+    carry keys on the screen-side reference's own nodes elsewhere.
+    """
+    nid = node.get("id")
+    if not _keyed or not nid or node.get("type") == "component":
+        return body
+    return _call("KeyedSubtree", [f"key: ValueKey({_dart_str(nid)})", f"child: {body}"])
+
+
+def _dispatch_node(node: dict) -> str:
     t = node["type"]
     if t == "frame":
         return _emit_frame(node)

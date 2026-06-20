@@ -9,6 +9,7 @@ from pathlib import Path
 from agent import (
     codegen,
     figma_client,
+    geometry,
     images,
     ir_parser,
     planner,
@@ -215,6 +216,60 @@ def _run_visual_validate(
         logger.save_visual_image("visual_screenshot", "visual_screenshot.png", shot)
 
 
+def _run_geometry_validate(
+    args: argparse.Namespace,
+    plan: dict,
+    figma: dict,
+    out_path: Path,
+    logger: RunLogger | None = None,
+) -> None:
+    """Diff the rendered layout geometry against the Figma node tree.
+
+    Generates a keyed variant of the screen, renders it to dump each node's
+    rect, compares those against the Figma `absoluteBoundingBox` targets, and
+    prints + writes a per-node deviation report. Non-fatal: any failure is a
+    warning and generation still succeeds.
+    """
+    out_dir = out_path.parent
+    keyed_path = out_dir / f"{out_path.stem}_keyed.dart"
+    try:
+        screen_class, w, h = _screen_geometry(plan)
+        keyed_path.write_text(codegen.generate(plan, keyed=True))
+        json_path = screenshot.capture_rects(
+            args.flutter_root, screen_class, w, h, keyed_path.name
+        )
+        actual = geometry.load_rects(json.loads(json_path.read_text()))
+        target = geometry.collect_target_rects(figma)
+        names = geometry.collect_names(figma)
+        report = geometry.diff_rects(target, actual, args.geometry_tolerance, names)
+    except (RuntimeError, OSError, ValueError) as exc:
+        print(f"warning: geometry validation failed: {exc}", file=sys.stderr)
+        return
+    finally:
+        keyed_path.unlink(missing_ok=True)
+
+    report_path = out_dir / "geometry_report.json"
+    report_path.write_text(json.dumps(report.to_dict(), indent=2))
+    print(
+        f"Geometry: {report.matched} nodes matched "
+        f"(of {report.target_total} Figma / {report.actual_total} rendered)"
+    )
+    print(
+        f"  max offset {report.max_offset:.1f}px | mean {report.mean_offset:.1f}px | "
+        f"{len(report.deviations)} over {report.tolerance:.0f}px"
+    )
+    for dev in report.deviations[: args.geometry_top]:
+        label = dev.name or dev.id
+        print(
+            f"  {label}: {'/'.join(dev.kinds)} "
+            f"(dx={dev.dx:+.0f} dy={dev.dy:+.0f} dw={dev.dw:+.0f} dh={dev.dh:+.0f})"
+        )
+    print(f"Geometry report: {report_path}")
+
+    if logger is not None:
+        logger.save_geometry_report(report.to_dict())
+
+
 def _run_validate(flutter_root: str) -> ValidationResult | None:
     try:
         return validator.validate(flutter_root)
@@ -283,6 +338,24 @@ def main(argv: list[str] | None = None) -> int:
         type=float,
         default=2.0,
         help="Scale factor for the Figma node render used by --visual-validate (default: 2.0).",
+    )
+    parser.add_argument(
+        "--geometry-validate",
+        action="store_true",
+        help="Render a keyed screen and diff each node's rect against the Figma "
+        "layout; prints per-node position/size deviations and writes geometry_report.json.",
+    )
+    parser.add_argument(
+        "--geometry-tolerance",
+        type=float,
+        default=1.0,
+        help="Per-axis deviation (logical px) before a node counts as off (default: 1.0).",
+    )
+    parser.add_argument(
+        "--geometry-top",
+        type=int,
+        default=10,
+        help="How many worst deviations to print for --geometry-validate (default: 10).",
     )
     parser.add_argument(
         "--save-run",
@@ -365,6 +438,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.figma_url:
             _, node_id = figma_client.parse_figma_url(args.figma_url)
         _run_visual_validate(args, plan, out_path, node_id, logger)
+
+    if args.geometry_validate:
+        _run_geometry_validate(args, plan, figma, out_path, logger)
 
     success = False
     repair_attempts = 0
