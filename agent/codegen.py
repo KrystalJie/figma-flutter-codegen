@@ -215,6 +215,7 @@ def _emit_text(node: dict) -> str:
         node.get("fontWeight"),
         node.get("color"),
         node.get("fontFamily"),
+        node.get("lineHeight"),
     )
     if style:
         args.append("style: " + style)
@@ -257,20 +258,29 @@ def _emit_icon(node: dict) -> str:
 
 
 def _text_style_expr(
-    size: Any, weight: Any, color: str | None, family: str | None = None
+    size: Any,
+    weight: Any,
+    color: str | None,
+    family: str | None = None,
+    line_height: Any = None,
 ) -> str | None:
-    """Text style as a typography token (+ `copyWith` for color) when active.
+    """Text style as a typography token (+ `copyWith` overrides) when active.
 
     fontFamily/fontSize/fontWeight form a reusable `AppTextStyles` constant; the
-    per-use color is layered on with `copyWith` so one type ramp serves many
-    colors. A text with only a color (no family/size/weight) stays an inline
-    `TextStyle`.
+    per-use color and line-height are layered on with `copyWith` so one type
+    ramp serves many colors/leadings. A text with only overrides (no
+    family/size/weight) stays an inline `TextStyle`.
     """
+    overrides: list[str] = []
+    if color is not None:
+        overrides.append(f"color: {_color(color)}")
+    if line_height is not None:
+        overrides.append(f"height: {_num(line_height)}")
     has_type = size is not None or weight is not None or family is not None
     if _active is not None and has_type:
         base = _active.text_style(size, weight, family)
-        if color is not None:
-            return f"{base}.copyWith(color: {_color(color)})"
+        if overrides:
+            return f"{base}.copyWith({', '.join(overrides)})"
         return base
     style_args: list[str] = []
     if family is not None:
@@ -279,8 +289,7 @@ def _text_style_expr(
         style_args.append(f"fontSize: {_num(size)}")
     if weight is not None:
         style_args.append(f"fontWeight: FontWeight.w{int(weight)}")
-    if color is not None:
-        style_args.append(f"color: {_color(color)}")
+    style_args.extend(overrides)
     if not style_args:
         return None
     return _call("TextStyle", style_args)

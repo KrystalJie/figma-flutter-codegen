@@ -503,3 +503,18 @@ def test_parse_collects_semantic_color_styles_into_tokens() -> None:
 def test_parse_without_styles_has_no_tokens() -> None:
     root = {"id": "1", "type": "FRAME", "layoutMode": "VERTICAL", "children": []}
     assert "tokens" not in ir_parser.parse(root)
+
+
+def test_text_line_height_ratio_from_figma():
+    from agent import ir_parser
+    node = {
+        "id": "0:1", "type": "FRAME", "layoutMode": "VERTICAL",
+        "absoluteBoundingBox": {"x": 0, "y": 0, "width": 100, "height": 50},
+        "children": [{
+            "id": "1:1", "type": "TEXT", "characters": "Hi",
+            "absoluteBoundingBox": {"x": 0, "y": 0, "width": 50, "height": 20},
+            "style": {"fontSize": 16, "lineHeightPx": 19.36},
+        }],
+    }
+    ir = ir_parser.parse(node)
+    assert ir["root"]["children"][0]["lineHeight"] == round(19.36 / 16, 3)

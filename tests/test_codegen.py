@@ -531,3 +531,11 @@ def test_text_emits_font_family() -> None:
     )
     dart = codegen.generate(planner.plan(ir))
     assert "fontFamily: 'Inter'" in dart
+
+
+def test_text_line_height_emitted_via_copywith() -> None:
+    ir = _screen(
+        [{"id": "t", "type": "text", "text": "Hi", "fontSize": 16, "fontWeight": 400, "lineHeight": 1.21}]
+    )
+    dart = codegen.generate(planner.plan(ir))
+    assert "height: 1.21" in dart

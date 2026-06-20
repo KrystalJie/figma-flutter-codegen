@@ -308,7 +308,7 @@ class PageHeader extends StatelessWidget {
             top: 8,
             child: Text(
               'Logout',
-              style: AppTextStyles.inters16w500.copyWith(color: AppColors.white),
+              style: AppTextStyles.inters16w500.copyWith(color: AppColors.white, height: 1.21),
               textAlign: TextAlign.right,
             ),
           ),
@@ -317,7 +317,7 @@ class PageHeader extends StatelessWidget {
             top: 0,
             child: Text(
               'Profile',
-              style: AppTextStyles.inters30w600.copyWith(color: AppColors.white),
+              style: AppTextStyles.inters30w600.copyWith(color: AppColors.white, height: 1.21),
               textAlign: TextAlign.center,
             ),
           ),
@@ -331,7 +331,7 @@ class PageHeader extends StatelessWidget {
             top: 8,
             child: Text(
               'Settings',
-              style: AppTextStyles.inters16w500.copyWith(color: AppColors.white),
+              style: AppTextStyles.inters16w500.copyWith(color: AppColors.white, height: 1.21),
               textAlign: TextAlign.left,
             ),
           ),
@@ -356,7 +356,7 @@ class NameBio extends StatelessWidget {
             top: 0,
             child: Text(
               'Victoria Robertson',
-              style: AppTextStyles.inters30w600.copyWith(color: AppColors.black),
+              style: AppTextStyles.inters30w600.copyWith(color: AppColors.black, height: 1.21),
               textAlign: TextAlign.center,
             ),
           ),
@@ -365,7 +365,7 @@ class NameBio extends StatelessWidget {
             top: 44,
             child: Text(
               'A mantra goes here',
-              style: AppTextStyles.inters16w600.copyWith(color: AppColors.black),
+              style: AppTextStyles.inters16w600.copyWith(color: AppColors.black, height: 1.21),
               textAlign: TextAlign.center,
             ),
           ),
@@ -405,7 +405,7 @@ class LeftSelected extends StatelessWidget {
             top: 14,
             child: Text(
               'Posts',
-              style: AppTextStyles.inters16w600.copyWith(color: AppColors.greenPrimary),
+              style: AppTextStyles.inters16w600.copyWith(color: AppColors.greenPrimary, height: 1.21),
               textAlign: TextAlign.center,
             ),
           ),
@@ -445,7 +445,7 @@ class RightSelected extends StatelessWidget {
             top: 14,
             child: Text(
               'Search',
-              style: AppTextStyles.inters16w600.copyWith(color: AppColors.greenPrimary),
+              style: AppTextStyles.inters16w600.copyWith(color: AppColors.greenPrimary, height: 1.21),
               textAlign: TextAlign.center,
             ),
           ),
@@ -486,7 +486,7 @@ class SegmentedControlStructure extends StatelessWidget {
             top: 16,
             child: Text(
               'Photos',
-              style: AppTextStyles.inters16w500.copyWith(color: AppColors.gray03),
+              style: AppTextStyles.inters16w500.copyWith(color: AppColors.gray03, height: 1.21),
               textAlign: TextAlign.center,
             ),
           ),
@@ -495,7 +495,7 @@ class SegmentedControlStructure extends StatelessWidget {
             top: 16,
             child: Text(
               'Search',
-              style: AppTextStyles.inters16w500.copyWith(color: AppColors.gray03),
+              style: AppTextStyles.inters16w500.copyWith(color: AppColors.gray03, height: 1.21),
               textAlign: TextAlign.center,
             ),
           ),
@@ -563,7 +563,7 @@ class ContentContentBlockSmall extends StatelessWidget {
             top: 0,
             child: Text(
               'Header',
-              style: AppTextStyles.inters16w600.copyWith(color: AppColors.black),
+              style: AppTextStyles.inters16w600.copyWith(color: AppColors.black, height: 1.21),
               textAlign: TextAlign.left,
             ),
           ),
@@ -572,7 +572,7 @@ class ContentContentBlockSmall extends StatelessWidget {
             top: 2,
             child: Text(
               '8m ago',
-              style: AppTextStyles.inters14w400.copyWith(color: AppColors.gray03),
+              style: AppTextStyles.inters14w400.copyWith(color: AppColors.gray03, height: 1.21),
               textAlign: TextAlign.right,
             ),
           ),
@@ -583,7 +583,7 @@ class ContentContentBlockSmall extends StatelessWidget {
               width: 269,
               child: Text(
                 'He\'ll want to use your yacht, and I don\'t want this thing smelling like fish.',
-                style: AppTextStyles.inters14w400.copyWith(color: AppColors.black),
+                style: AppTextStyles.inters14w400.copyWith(color: AppColors.black, height: 1.21),
                 textAlign: TextAlign.left,
               ),
             ),

@@ -200,6 +200,7 @@ def _parse_text(node: dict) -> dict:
     _set_optional(out, "fontFamily", style.get("fontFamily"))
     _set_optional(out, "fontSize", style.get("fontSize"))
     _set_optional(out, "fontWeight", style.get("fontWeight"))
+    _set_optional(out, "lineHeight", _line_height(style))
     _set_optional(out, "color", _solid_fill(node))
     _set_optional(out, "textAlign", _TEXT_ALIGN.get(style.get("textAlignHorizontal")))
     # Fixed-width Figma text (textAutoResize != WIDTH_AND_HEIGHT) is meant to
@@ -208,6 +209,21 @@ def _parse_text(node: dict) -> dict:
     if (style.get("textAutoResize") or "").upper() in ("HEIGHT", "NONE", "TRUNCATE"):
         out["wrap"] = True
     return out
+
+
+def _line_height(style: dict) -> float | None:
+    """Figma line height as a Flutter `TextStyle.height` multiple of fontSize.
+
+    Figma reports the resolved `lineHeightPx` (even for "Auto"/intrinsic line
+    height); Flutter's `height` is a multiplier, so we divide by fontSize.
+    Without it, Flutter's default leading renders text boxes a few px taller
+    than the design.
+    """
+    px = style.get("lineHeightPx")
+    size = style.get("fontSize")
+    if not px or not size:
+        return None
+    return round(px / size, 3)
 
 
 def _parse_rectangle(node: dict) -> dict:
