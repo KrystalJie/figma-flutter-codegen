@@ -134,6 +134,11 @@ def _relative_position(child: dict, origin: dict) -> dict | None:
 
 
 def _parse_child(node: dict, warnings: list[str]) -> dict | None:
+    # Figma hides inactive layers (e.g. a component's unselected state) with
+    # `visible: false`; rendering them would overlay stale content and win the
+    # Stack z-order. Drop the node and its subtree.
+    if node.get("visible") is False:
+        return None
     t = node.get("type")
     # INSTANCE/GROUP/COMPONENT(_SET) are frame-like containers in real Figma
     # files: they carry a `children` array, so we recurse into them as frames.

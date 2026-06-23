@@ -11,7 +11,7 @@
     0.5,
     0.5
   ],
-  "pixel_mae": 0.079212,
-  "ssim": 0.781703,
-  "visual_score": 83.73
+  "pixel_mae": 0.061823,
+  "ssim": 0.827368,
+  "visual_score": 87.17
 }

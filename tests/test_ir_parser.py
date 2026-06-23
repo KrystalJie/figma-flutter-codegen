@@ -518,3 +518,24 @@ def test_text_line_height_ratio_from_figma():
     }
     ir = ir_parser.parse(node)
     assert ir["root"]["children"][0]["lineHeight"] == round(19.36 / 16, 3)
+
+
+def test_invisible_nodes_are_skipped():
+    from agent import ir_parser
+    node = {
+        "id": "0:1", "type": "FRAME", "layoutMode": "VERTICAL",
+        "absoluteBoundingBox": {"x": 0, "y": 0, "width": 100, "height": 50},
+        "children": [
+            {"id": "1:1", "type": "TEXT", "characters": "shown",
+             "absoluteBoundingBox": {"x": 0, "y": 0, "width": 50, "height": 20}},
+            {"id": "1:2", "type": "TEXT", "characters": "hidden", "visible": False,
+             "absoluteBoundingBox": {"x": 0, "y": 0, "width": 50, "height": 20}},
+            {"id": "1:3", "type": "FRAME", "visible": False, "layoutMode": "VERTICAL",
+             "absoluteBoundingBox": {"x": 0, "y": 0, "width": 50, "height": 20},
+             "children": [{"id": "1:4", "type": "TEXT", "characters": "deep",
+                           "absoluteBoundingBox": {"x": 0, "y": 0, "width": 10, "height": 10}}]},
+        ],
+    }
+    ir = ir_parser.parse(node)
+    texts = [c.get("text") for c in ir["root"]["children"]]
+    assert texts == ["shown"]

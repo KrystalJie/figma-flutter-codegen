@@ -115,15 +115,6 @@ class BG extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
-            left: 0,
-            top: 2,
-            child: Container(
-              width: 375,
-              height: 44,
-              color: AppColors.black,
-            ),
-          ),
-          Positioned(
             left: 78,
             top: 0,
             child: SizedBox(
@@ -278,21 +269,6 @@ class IOSStatusBarWhite extends StatelessWidget {
   }
 }
 
-class IconX extends StatelessWidget {
-  const IconX({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 22.627416610717773,
-      height: 22.627416610717773,
-      child: Stack(
-        children: <Widget>[],
-      ),
-    );
-  }
-}
-
 class PageHeader extends StatelessWidget {
   const PageHeader({super.key});
 
@@ -320,11 +296,6 @@ class PageHeader extends StatelessWidget {
               style: AppTextStyles.inters30w600.copyWith(color: AppColors.white, height: 1.21),
               textAlign: TextAlign.center,
             ),
-          ),
-          Positioned(
-            left: -0.313720703125,
-            top: 4.686291694641113,
-            child: const IconX(),
           ),
           Positioned(
             left: 0,
@@ -415,46 +386,6 @@ class LeftSelected extends StatelessWidget {
   }
 }
 
-class RightSelected extends StatelessWidget {
-  const RightSelected({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 171.5,
-      height: 46,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(100),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            top: 0,
-            child: Container(
-              width: 171.5,
-              height: 46,
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(100),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 59,
-            top: 14,
-            child: Text(
-              'Search',
-              style: AppTextStyles.inters16w600.copyWith(color: AppColors.greenPrimary, height: 1.21),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class SegmentedControlStructure extends StatelessWidget {
   const SegmentedControlStructure({super.key});
 
@@ -503,11 +434,6 @@ class SegmentedControlStructure extends StatelessWidget {
             left: 2,
             top: 2,
             child: const LeftSelected(),
-          ),
-          Positioned(
-            left: 169,
-            top: 2,
-            child: const RightSelected(),
           ),
         ],
       ),

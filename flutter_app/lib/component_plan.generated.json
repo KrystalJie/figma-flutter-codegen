@@ -140,20 +140,6 @@
         },
         "children": [
           {
-            "id": "I151:547;144:356;144:382",
-            "type": "rectangle",
-            "name": "BG",
-            "size": {
-              "width": 375.0,
-              "height": 44.0
-            },
-            "fill": "#000000",
-            "position": {
-              "x": 0.0,
-              "y": 2.0
-            }
-          },
-          {
             "id": "I151:547;144:356;144:385",
             "type": "icon",
             "name": "Notch",
@@ -373,26 +359,6 @@
       }
     },
     {
-      "name": "IconX",
-      "root": {
-        "id": "I151:548;151:511",
-        "type": "frame",
-        "name": "Icon/X",
-        "size": {
-          "width": 22.627416610717773,
-          "height": 22.627416610717773
-        },
-        "layout": {
-          "direction": "stack"
-        },
-        "children": [],
-        "position": {
-          "x": -0.313720703125,
-          "y": 4.686291694641113
-        }
-      }
-    },
-    {
       "name": "PageHeader",
       "root": {
         "id": "151:548",
@@ -444,14 +410,6 @@
             "position": {
               "x": 126.0,
               "y": 0.0
-            }
-          },
-          {
-            "type": "component",
-            "ref": "IconX",
-            "position": {
-              "x": -0.313720703125,
-              "y": 4.686291694641113
             }
           },
           {
@@ -600,63 +558,6 @@
       }
     },
     {
-      "name": "RightSelected",
-      "root": {
-        "id": "I151:886;151:711;151:727",
-        "type": "frame",
-        "name": "Right Selected",
-        "size": {
-          "width": 171.5,
-          "height": 46.0
-        },
-        "cornerRadius": 100.0,
-        "layout": {
-          "direction": "stack"
-        },
-        "children": [
-          {
-            "id": "I151:886;151:711;151:728",
-            "type": "rectangle",
-            "name": "BG",
-            "size": {
-              "width": 171.5,
-              "height": 46.0
-            },
-            "fill": "#FFFFFF",
-            "cornerRadius": 100.0,
-            "position": {
-              "x": 0.0,
-              "y": 0.0
-            }
-          },
-          {
-            "id": "I151:886;151:711;151:729",
-            "type": "text",
-            "text": "Search",
-            "name": "Search",
-            "size": {
-              "width": 55.0,
-              "height": 19.0
-            },
-            "fontFamily": "Inter",
-            "fontSize": 16.0,
-            "fontWeight": 600,
-            "lineHeight": 1.21,
-            "color": "#5DB075",
-            "textAlign": "center",
-            "position": {
-              "x": 59.0,
-              "y": 14.0
-            }
-          }
-        ],
-        "position": {
-          "x": 169.0,
-          "y": 2.0
-        }
-      }
-    },
-    {
       "name": "SegmentedControlStructure",
       "root": {
         "id": "I151:886;151:711",
@@ -734,14 +635,6 @@
             "ref": "LeftSelected",
             "position": {
               "x": 2.0,
-              "y": 2.0
-            }
-          },
-          {
-            "type": "component",
-            "ref": "RightSelected",
-            "position": {
-              "x": 169.0,
               "y": 2.0
             }
           }
