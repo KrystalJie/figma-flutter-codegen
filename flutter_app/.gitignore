@@ -53,3 +53,6 @@ app.*.map.json
 /test/visual_rects/
 /lib/geometry_report.json
 /lib/*_keyed.dart
+
+# Raw Figma response dumped next to output for debugging (regenerated per run)
+/lib/figma_raw.json
