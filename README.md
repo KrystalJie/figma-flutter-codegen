@@ -10,8 +10,9 @@ reusable components, and emits readable Dart. Optional layers validate the
 output with `flutter analyze`, diff the render against Figma for fidelity, and
 repair regressions.
 
-> Scope: Flutter only, mobile portrait, static layout. See [CLAUDE.md](CLAUDE.md)
-> for the full spec and the step-by-step development log.
+> Scope: Flutter only, mobile portrait, static layout. See
+> [ARCHITECTURE.md](ARCHITECTURE.md) for the design rationale and
+> [CLAUDE.md](CLAUDE.md) for the step-by-step development log.
 
 ## Example
 
