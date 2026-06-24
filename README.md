@@ -115,6 +115,40 @@ injected) — makes zero network calls.
 - Single mobile-portrait viewport; no interactions, state, or responsive
   breakpoints.
 
+## Roadmap: Repair Agent
+
+Each validation layer emits a *signal*; a **Repair Agent** closes the loop by
+consuming a signal and emitting adjusted code. The target is three branches,
+split by signal type:
+
+```
+Repair Agent
+├── Code Repair      [implemented]  --repair
+│     input:  flutter analyze log (+ current Dart)
+│     output: fixed Dart code            (LLM, whole-file, live-verified)
+│
+├── Layout Repair    [partial]
+│     input:  overflow log / rendered rects / geometry diff
+│     output: adjusted layout code
+│     done:   deterministic position/size nudges (--repair-geometry)
+│     todo:   consume overflow logs; LLM-driven structural fixes
+│             (alignment, flex, regrouping) beyond pure nudging
+│
+└── Visual Repair    [planned]
+      input:  screenshot diff / visual score / region diff
+      output: adjusted style/layout code
+      signal exists (--visual-validate); no consumer yet. Blocked on model:
+      DeepSeek v4 is text-only, so it needs a vision model or the visual
+      diff reduced to text (per-region metric deltas) the repair LLM can act on.
+```
+
+**Code Repair** is live today (analyze-error → fixed Dart via the LLM).
+**Layout Repair** exists only deterministically (`--repair-geometry` nudges
+position/size from the geometry diff); the overflow-log and LLM/structural
+variants are unimplemented. **Visual Repair** has its signal
+(`--visual-validate`) but no repair consumer. Layout inference (`--llm`,
+Stack→flow) is a *generation*-time helper, complementary to these repair loops.
+
 ## Repository layout
 
 ```
