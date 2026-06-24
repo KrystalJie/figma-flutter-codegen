@@ -13,6 +13,7 @@ from agent import (
     geometry_repair,
     images,
     ir_parser,
+    naming,
     planner,
     repair,
     screenshot,
@@ -124,6 +125,25 @@ def _maybe_download_icons(
     missing = len(icon_ids) - len(asset_map)
     if missing:
         warnings.append(f"{missing} icon(s) had no render URL (placeholder used)")
+
+
+def _maybe_name_colors(
+    args: argparse.Namespace, ir: dict, client: LLMClient, warnings: list[str]
+) -> None:
+    """Ask the LLM to name colors with no published Style (token route C).
+
+    Opt-in via --llm-names. Non-fatal: any failure (no API key, bad JSON,
+    network) warns and generation continues with value-derived `c<hex>` names.
+    """
+    if not args.llm_names:
+        return
+    try:
+        added = naming.attach_color_names(ir, client)
+    except (NotImplementedError, ValueError) as exc:
+        warnings.append(f"LLM color naming skipped: {exc}")
+        return
+    if added:
+        print(f"LLM named {len(added)} color(s): {', '.join(sorted(added.values()))}")
 
 
 _DEFAULT_SCREEN_SIZE = (375, 812)
@@ -366,6 +386,13 @@ def main(argv: list[str] | None = None) -> int:
         "(--repair) is the supported LLM capability.",
     )
     parser.add_argument(
+        "--llm-names",
+        action="store_true",
+        help="(LLM) Propose semantic AppColors names for colors with no "
+        "published Figma Style (needs DEEPSEEK_API_KEY). Non-fatal: falls back "
+        "to value-derived names on any failure.",
+    )
+    parser.add_argument(
         "--validate",
         action="store_true",
         help="Run `flutter analyze` in the Flutter root after generation",
@@ -464,6 +491,7 @@ def main(argv: list[str] | None = None) -> int:
         ir = ir_parser.parse(figma, warnings, styles=styles)
         _maybe_download_images(args, ir, warnings)
         _maybe_download_icons(args, ir, warnings)
+        _maybe_name_colors(args, ir, client, warnings)
         plan = planner.plan_with_llm(ir, client) if args.llm else planner.plan(ir)
         dart = codegen.generate(plan)
     except FileNotFoundError as exc:

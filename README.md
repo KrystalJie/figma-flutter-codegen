@@ -25,7 +25,8 @@ Figma JSON ─► Design IR ─► Component Plan ─► Flutter code ─► val
   emits small, reusable widgets instead of one giant `build`.
 - **`codegen`** — Plan → Dart. Interns repeated style literals into
   `AppColors` / `AppSpacing` / `AppTextStyles` design tokens (semantic color
-  names when the Figma file publishes Styles).
+  names when the Figma file publishes Styles, or — with `--llm-names` — names
+  proposed by the LLM for un-styled colors).
 - **`validator` / `repair`** — run `flutter analyze`; on failure, optionally ask
   an LLM to patch the file and re-check.
 
@@ -67,6 +68,7 @@ figma2flutter --input examples/figma_sample.json --output flutter_app/lib/genera
 | `--geometry-validate` | Diff each node's rendered rect against Figma's layout (per-node position/size deviations). |
 | `--repair-geometry` | Iteratively nudge node positions/sizes toward the Figma layout. |
 | `--save-run` | Archive inputs, plan, output, and reports under `runs/`. |
+| `--llm-names` | Ask the LLM to propose semantic `AppColors` names for colors with no published Figma Style. Non-fatal. |
 | `--llm` | *(experimental)* Use the LLM planner — see limitations below. |
 
 Run `python -m agent.cli --help` for the full set (tolerances, attempt counts,
@@ -83,8 +85,12 @@ python -m agent.cli --figma-url "https://www.figma.com/design/<key>/...?node-id=
   --output flutter_app/lib/screen.dart --repair --visual-validate
 ```
 
-Without `DEEPSEEK_API_KEY` the pipeline stays fully deterministic; the LLM path
-is never exercised in tests (a fake client is injected).
+**The LLM is strictly opt-in.** A real call happens only when *both* are true:
+(1) you pass `--repair` or `--llm`, and (2) `DEEPSEEK_API_KEY` is set. With no
+flag the pipeline runs the deterministic planner and never constructs a network
+client; with a flag but no key it falls back to a stub that fails loudly rather
+than calling out. The default path — and the entire test suite (a fake client is
+injected) — makes zero network calls.
 
 ## What's supported
 
