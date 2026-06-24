@@ -1,5 +1,7 @@
 # figma2flutter-agent
 
+[![CI](https://github.com/jieshiyun/figma2flutter-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/jieshiyun/figma2flutter-agent/actions/workflows/ci.yml)
+
 Convert a Figma mobile screen into maintainable Flutter UI code.
 
 `figma2flutter-agent` is a small, deterministic pipeline: it reads a Figma node
@@ -10,6 +12,22 @@ repair regressions.
 
 > Scope: Flutter only, mobile portrait, static layout. See [CLAUDE.md](CLAUDE.md)
 > for the full spec and the step-by-step development log.
+
+## Example
+
+A real Figma profile screen and the Flutter screen this pipeline generates from
+it (rendered with `--visual-validate`):
+
+<p align="center">
+  <img src="docs/figma_reference.png" width="300" alt="Figma source design" />
+  <img src="docs/flutter_render.png" width="300" alt="Generated Flutter screen" />
+</p>
+
+Left: the Figma node render (input). Right: the generated screen, rasterized
+with the real bundled Inter font. The segmented control, layout, colors, and
+typography reproduce the source; the avatar photo and status-bar icons are
+fetched from Figma's image API only on a live `--figma-url` run, so they appear
+blank when generating from a saved node dump.
 
 ## Pipeline
 
@@ -35,7 +53,7 @@ Run from source — the only runtime dependencies are Pillow and numpy:
 
 ```bash
 pip install pillow numpy pytest
-pytest                    # 244 tests, no network or Flutter required
+pytest                    # 259 tests, no network or Flutter required
 
 # Generate a screen from the bundled sample:
 python -m agent.cli \
@@ -89,6 +107,24 @@ flag the pipeline runs the deterministic planner and never constructs a network
 client; with a flag but no key it falls back to a stub that fails loudly rather
 than calling out. The default path — and the entire test suite (a fake client is
 injected) — makes zero network calls.
+
+## Metrics
+
+`python -m agent.metrics` aggregates the headline evaluation metrics across
+every saved run (`runs/`, written by `--save-run`) — no Flutter or network
+calls, it just summarizes existing artifacts:
+
+```bash
+python -m agent.metrics            # human-readable report
+python -m agent.metrics --json     # machine-readable aggregate
+```
+
+Reported: **compile success rate** (`flutter analyze` pass rate over validated
+runs), **repair success rate** (runs the LLM fixed to passing / runs that needed
+repair), **visual fidelity** (mean `visual_score` / SSIM / pixel MAE from
+`visual_report.json`), **mean generated LOC**, and **component reuse ratio**
+(component references ÷ distinct components in the plan). Metrics with no
+underlying data report `n/a` rather than a fabricated number.
 
 ## What's supported
 
@@ -154,11 +190,11 @@ Stack→flow) is a *generation*-time helper, complementary to these repair loops
 ```
 agent/       pipeline modules (cli, figma_client, ir_parser, planner, codegen,
              validator, repair, llm, tokens, images, screenshot, visual,
-             geometry, geometry_repair)
+             geometry, geometry_repair, layout_infer, metrics, run_logger)
 schemas/     Design IR + Component Plan JSON schemas
 examples/    sample Figma JSON, sample Design IR, sample generated Dart
 flutter_app/ Flutter gallery app (target for generated code)
-tests/       pytest suite (244 tests; network and Flutter are mocked)
+tests/       pytest suite (259 tests; network and Flutter are mocked)
 ```
 
 ## License
