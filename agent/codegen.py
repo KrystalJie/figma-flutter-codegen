@@ -137,16 +137,50 @@ def _emit_layout(node: dict) -> str:
 
 
 def _emit_flex(layout: dict, children: list[dict]) -> str:
-    widget = "Column" if layout["direction"] == "vertical" else "Row"
+    vertical = layout["direction"] == "vertical"
+    widget = "Column" if vertical else "Row"
+    cross = _cross_alignment(layout, children)
     args: list[str] = []
-    if "alignment" in layout:
-        args.append(f"crossAxisAlignment: CrossAxisAlignment.{layout['alignment']}")
+    if cross:
+        args.append(f"crossAxisAlignment: CrossAxisAlignment.{cross}")
     if "justify" in layout:
         args.append(f"mainAxisAlignment: MainAxisAlignment.{layout['justify']}")
     if layout.get("spacing"):
         args.append(f"spacing: {_space(layout['spacing'])}")
-    args.append(_children_arg(children))
+    # When the column isn't stretching every child, expand only the children
+    # that opt into filling the counter axis. Restricted to columns: a Row's
+    # counter axis is height, which is usually unbounded, so double.infinity
+    # would overflow.
+    expand = cross != "stretch" and vertical
+    rendered = [_emit_flex_child(c, expand) for c in children]
+    args.append(_children_arg(children, rendered))
     return _call(widget, args)
+
+
+def _cross_alignment(layout: dict, children: list[dict]) -> str | None:
+    """Counter-axis alignment, honoring per-child fill (`layoutAlign`).
+
+    Figma encodes per-child counter-axis fill with `layoutAlign == STRETCH`; a
+    frame-level `stretch` only truly applies when every child opts in. When some
+    children carry explicit alignment and not all stretch, `stretch` would also
+    stretch hug-content children (e.g. text), so we fall back to `start` and let
+    `_emit_flex_child` expand just the opted-in children.
+    """
+    cross = layout.get("alignment")
+    if cross != "stretch":
+        return cross
+    explicit = any("layoutAlign" in c for c in children)
+    all_fill = all(c.get("layoutAlign") == "stretch" for c in children)
+    if explicit and not all_fill:
+        return "start"
+    return cross
+
+
+def _emit_flex_child(node: dict, expand: bool) -> str:
+    body = _emit_node(node)
+    if expand and node.get("layoutAlign") == "stretch":
+        return _call("SizedBox", ["width: double.infinity", f"child: {body}"])
+    return body
 
 
 def _emit_stack(children: list[dict]) -> str:

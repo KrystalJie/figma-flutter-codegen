@@ -1,0 +1,232 @@
+{
+  "id": "2:1",
+  "name": "ProductScreen",
+  "type": "FRAME",
+  "absoluteBoundingBox": { "x": 0, "y": 0, "width": 390, "height": 844 },
+  "fills": [{ "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }],
+  "layoutMode": "VERTICAL",
+  "itemSpacing": 20,
+  "paddingTop": 16,
+  "paddingRight": 16,
+  "paddingBottom": 16,
+  "paddingLeft": 16,
+  "primaryAxisAlignItems": "MIN",
+  "counterAxisAlignItems": "STRETCH",
+  "children": [
+    {
+      "id": "2:2",
+      "name": "Header",
+      "type": "FRAME",
+      "absoluteBoundingBox": { "x": 16, "y": 16, "width": 358, "height": 40 },
+      "layoutMode": "HORIZONTAL",
+      "itemSpacing": 8,
+      "primaryAxisAlignItems": "SPACE_BETWEEN",
+      "counterAxisAlignItems": "CENTER",
+      "children": [
+        {
+          "id": "2:3",
+          "type": "TEXT",
+          "characters": "Back",
+          "absoluteBoundingBox": { "x": 16, "y": 26, "width": 40, "height": 20 },
+          "style": { "fontFamily": "Inter", "fontSize": 16, "fontWeight": 400, "lineHeightPx": 19.36 },
+          "fills": [{ "type": "SOLID", "color": { "r": 0.2, "g": 0.4, "b": 0.9, "a": 1 } }]
+        },
+        {
+          "id": "2:4",
+          "type": "TEXT",
+          "characters": "Details",
+          "absoluteBoundingBox": { "x": 159, "y": 24, "width": 72, "height": 24 },
+          "style": { "fontFamily": "Inter", "fontSize": 18, "fontWeight": 700, "lineHeightPx": 21.78, "textAlignHorizontal": "CENTER" },
+          "fills": [{ "type": "SOLID", "color": { "r": 0.067, "g": 0.067, "b": 0.067, "a": 1 } }]
+        },
+        {
+          "id": "2:5",
+          "name": "Avatar",
+          "type": "ELLIPSE",
+          "absoluteBoundingBox": { "x": 334, "y": 16, "width": 40, "height": 40 },
+          "fills": [{ "type": "SOLID", "color": { "r": 0.9, "g": 0.9, "b": 0.92, "a": 1 } }],
+          "strokes": [{ "type": "SOLID", "color": { "r": 0.2, "g": 0.4, "b": 0.9, "a": 1 } }],
+          "strokeWeight": 2
+        }
+      ]
+    },
+    {
+      "id": "2:6",
+      "name": "Hero",
+      "type": "RECTANGLE",
+      "absoluteBoundingBox": { "x": 16, "y": 76, "width": 358, "height": 200 },
+      "fills": [{ "type": "SOLID", "color": { "r": 0.93, "g": 0.95, "b": 0.98, "a": 1 } }],
+      "strokes": [{ "type": "SOLID", "color": { "r": 0.85, "g": 0.87, "b": 0.9, "a": 1 } }],
+      "strokeWeight": 1,
+      "cornerRadius": 16
+    },
+    {
+      "id": "2:7",
+      "name": "Content",
+      "type": "FRAME",
+      "absoluteBoundingBox": { "x": 16, "y": 296, "width": 358, "height": 180 },
+      "layoutMode": "VERTICAL",
+      "itemSpacing": 12,
+      "primaryAxisAlignItems": "MIN",
+      "counterAxisAlignItems": "STRETCH",
+      "children": [
+        {
+          "id": "2:8",
+          "type": "TEXT",
+          "characters": "Wireless Headphones",
+          "absoluteBoundingBox": { "x": 16, "y": 296, "width": 280, "height": 28 },
+          "style": { "fontFamily": "Inter", "fontSize": 22, "fontWeight": 700, "lineHeightPx": 26.63 },
+          "fills": [{ "type": "SOLID", "color": { "r": 0.067, "g": 0.067, "b": 0.067, "a": 1 } }]
+        },
+        {
+          "id": "2:9",
+          "type": "TEXT",
+          "characters": "Premium over-ear headphones with active noise cancellation and 30-hour battery life for all-day listening.",
+          "absoluteBoundingBox": { "x": 16, "y": 336, "width": 358, "height": 60 },
+          "style": { "fontFamily": "Inter", "fontSize": 14, "fontWeight": 400, "lineHeightPx": 20, "textAutoResize": "HEIGHT" },
+          "fills": [{ "type": "SOLID", "color": { "r": 0.4, "g": 0.4, "b": 0.43, "a": 1 } }]
+        },
+        {
+          "id": "2:10",
+          "name": "Stats",
+          "type": "FRAME",
+          "layoutAlign": "STRETCH",
+          "absoluteBoundingBox": { "x": 16, "y": 408, "width": 358, "height": 56 },
+          "layoutMode": "HORIZONTAL",
+          "itemSpacing": 8,
+          "primaryAxisAlignItems": "SPACE_BETWEEN",
+          "counterAxisAlignItems": "CENTER",
+          "children": [
+            {
+              "id": "2:11",
+              "name": "Stat1",
+              "type": "FRAME",
+              "absoluteBoundingBox": { "x": 16, "y": 408, "width": 80, "height": 56 },
+              "layoutMode": "VERTICAL",
+              "itemSpacing": 4,
+              "counterAxisAlignItems": "CENTER",
+              "children": [
+                {
+                  "id": "2:12",
+                  "type": "TEXT",
+                  "characters": "4.8",
+                  "absoluteBoundingBox": { "x": 40, "y": 408, "width": 32, "height": 24 },
+                  "style": { "fontFamily": "Inter", "fontSize": 20, "fontWeight": 700, "lineHeightPx": 24.2 },
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.067, "g": 0.067, "b": 0.067, "a": 1 } }]
+                },
+                {
+                  "id": "2:13",
+                  "type": "TEXT",
+                  "characters": "Rating",
+                  "absoluteBoundingBox": { "x": 36, "y": 436, "width": 40, "height": 16 },
+                  "style": { "fontFamily": "Inter", "fontSize": 12, "fontWeight": 400, "lineHeightPx": 14.52 },
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.4, "g": 0.4, "b": 0.43, "a": 1 } }]
+                }
+              ]
+            },
+            {
+              "id": "2:14",
+              "name": "Stat2",
+              "type": "FRAME",
+              "absoluteBoundingBox": { "x": 155, "y": 408, "width": 80, "height": 56 },
+              "layoutMode": "VERTICAL",
+              "itemSpacing": 4,
+              "counterAxisAlignItems": "CENTER",
+              "children": [
+                {
+                  "id": "2:15",
+                  "type": "TEXT",
+                  "characters": "30h",
+                  "absoluteBoundingBox": { "x": 179, "y": 408, "width": 32, "height": 24 },
+                  "style": { "fontFamily": "Inter", "fontSize": 20, "fontWeight": 700, "lineHeightPx": 24.2 },
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.067, "g": 0.067, "b": 0.067, "a": 1 } }]
+                },
+                {
+                  "id": "2:16",
+                  "type": "TEXT",
+                  "characters": "Battery",
+                  "absoluteBoundingBox": { "x": 173, "y": 436, "width": 44, "height": 16 },
+                  "style": { "fontFamily": "Inter", "fontSize": 12, "fontWeight": 400, "lineHeightPx": 14.52 },
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.4, "g": 0.4, "b": 0.43, "a": 1 } }]
+                }
+              ]
+            },
+            {
+              "id": "2:17",
+              "name": "Stat3",
+              "type": "FRAME",
+              "absoluteBoundingBox": { "x": 294, "y": 408, "width": 80, "height": 56 },
+              "layoutMode": "VERTICAL",
+              "itemSpacing": 4,
+              "counterAxisAlignItems": "CENTER",
+              "children": [
+                {
+                  "id": "2:18",
+                  "type": "TEXT",
+                  "characters": "12",
+                  "absoluteBoundingBox": { "x": 324, "y": 408, "width": 20, "height": 24 },
+                  "style": { "fontFamily": "Inter", "fontSize": 20, "fontWeight": 700, "lineHeightPx": 24.2 },
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.067, "g": 0.067, "b": 0.067, "a": 1 } }]
+                },
+                {
+                  "id": "2:19",
+                  "type": "TEXT",
+                  "characters": "Colors",
+                  "absoluteBoundingBox": { "x": 314, "y": 436, "width": 40, "height": 16 },
+                  "style": { "fontFamily": "Inter", "fontSize": 12, "fontWeight": 400, "lineHeightPx": 14.52 },
+                  "fills": [{ "type": "SOLID", "color": { "r": 0.4, "g": 0.4, "b": 0.43, "a": 1 } }]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2:20",
+      "name": "BadgeOverlay",
+      "type": "FRAME",
+      "absoluteBoundingBox": { "x": 16, "y": 496, "width": 358, "height": 48 },
+      "children": [
+        {
+          "id": "2:21",
+          "name": "BadgeBg",
+          "type": "RECTANGLE",
+          "absoluteBoundingBox": { "x": 16, "y": 496, "width": 120, "height": 32 },
+          "fills": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.4, "b": 0.3, "a": 1 } }],
+          "cornerRadius": 16
+        },
+        {
+          "id": "2:22",
+          "type": "TEXT",
+          "characters": "-20% OFF",
+          "absoluteBoundingBox": { "x": 36, "y": 503, "width": 80, "height": 18 },
+          "style": { "fontFamily": "Inter", "fontSize": 13, "fontWeight": 600, "lineHeightPx": 15.73 },
+          "fills": [{ "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }]
+        }
+      ]
+    },
+    {
+      "id": "2:23",
+      "name": "AddToCartButton",
+      "type": "FRAME",
+      "absoluteBoundingBox": { "x": 16, "y": 564, "width": 358, "height": 52 },
+      "fills": [{ "type": "SOLID", "color": { "r": 0.2, "g": 0.4, "b": 0.9, "a": 1 } }],
+      "cornerRadius": 12,
+      "layoutMode": "HORIZONTAL",
+      "itemSpacing": 8,
+      "primaryAxisAlignItems": "CENTER",
+      "counterAxisAlignItems": "CENTER",
+      "children": [
+        {
+          "id": "2:24",
+          "type": "TEXT",
+          "characters": "Add to Cart",
+          "absoluteBoundingBox": { "x": 150, "y": 580, "width": 90, "height": 20 },
+          "style": { "fontFamily": "Inter", "fontSize": 16, "fontWeight": 600, "lineHeightPx": 19.36 },
+          "fills": [{ "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }]
+        }
+      ]
+    }
+  ]
+}

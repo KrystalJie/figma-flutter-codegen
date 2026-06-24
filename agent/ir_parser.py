@@ -113,8 +113,17 @@ def _parse_children(node: dict, layout: dict, warnings: list[str]) -> list[dict]
             continue
         if origin is not None:
             _set_optional(parsed, "position", _relative_position(c, origin))
+        _set_optional(parsed, "layoutAlign", _layout_align(c))
         out.append(parsed)
     return out
+
+
+def _layout_align(node: dict) -> str | None:
+    """Per-child counter-axis sizing. Figma's `layoutAlign == STRETCH` means the
+    child fills the parent's counter axis; INHERIT/MIN/CENTER/MAX hug content."""
+    if (node.get("layoutAlign") or "").upper() == "STRETCH":
+        return "stretch"
+    return None
 
 
 def _stack_origin(node: dict, layout: dict) -> dict | None:

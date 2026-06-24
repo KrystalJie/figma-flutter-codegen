@@ -21,6 +21,18 @@ def test_root_must_be_frame() -> None:
         ir_parser.parse({"id": "1", "type": "TEXT", "characters": "x"})
 
 
+def test_child_layout_align_stretch_captured() -> None:
+    fig = _frame(children=[
+        {"id": "fill", "type": "RECTANGLE", "layoutAlign": "STRETCH"},
+        {"id": "hug", "type": "RECTANGLE", "layoutAlign": "INHERIT"},
+        {"id": "none", "type": "RECTANGLE"},
+    ])
+    fill, hug, none = ir_parser.parse(fig)["root"]["children"]
+    assert fill["layoutAlign"] == "stretch"
+    assert "layoutAlign" not in hug
+    assert "layoutAlign" not in none
+
+
 def test_screen_basic_shape() -> None:
     out = ir_parser.parse(_frame("scr", name="S"))
     assert out["version"] == "0.1"

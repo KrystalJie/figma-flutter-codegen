@@ -539,3 +539,65 @@ def test_text_line_height_emitted_via_copywith() -> None:
     )
     dart = codegen.generate(planner.plan(ir))
     assert "height: 1.21" in dart
+
+
+# ---------------------------------------------------------------------------
+# Per-child counter-axis fill (layoutAlign)
+# ---------------------------------------------------------------------------
+
+
+def test_stretch_kept_when_no_layout_align() -> None:
+    # Backward compat: a stretch frame with no per-child info stretches all
+    # children via CrossAxisAlignment.stretch and never wraps in a SizedBox.
+    ir = _screen(
+        [
+            {"id": "a", "type": "text", "text": "A"},
+            {"id": "b", "type": "text", "text": "B"},
+        ],
+        layout={"direction": "vertical", "alignment": "stretch"},
+    )
+    dart = _gen(ir)
+    assert "CrossAxisAlignment.stretch" in dart
+    assert "double.infinity" not in dart
+
+
+def test_stretch_demoted_when_a_child_hugs() -> None:
+    # A stretch frame with a hug-content text + a fill child must NOT stretch
+    # the text: demote to start and expand only the opted-in child.
+    ir = _screen(
+        [
+            {"id": "t", "type": "text", "text": "Title", "fontSize": 20},
+            {
+                "id": "r",
+                "type": "rectangle",
+                "layoutAlign": "stretch",
+                "size": {"width": 100, "height": 10},
+                "fill": "#FF0000",
+            },
+        ],
+        layout={"direction": "vertical", "alignment": "stretch"},
+    )
+    dart = _gen(ir)
+    assert "CrossAxisAlignment.start" in dart
+    assert "CrossAxisAlignment.stretch" not in dart
+    assert "width: double.infinity" in dart
+
+
+def test_row_does_not_expand_fill_child() -> None:
+    # A Row's counter axis is height (usually unbounded), so a fill child must
+    # not be wrapped in double.infinity even when it opts in.
+    ir = _screen(
+        [
+            {"id": "t", "type": "text", "text": "X"},
+            {
+                "id": "r",
+                "type": "rectangle",
+                "layoutAlign": "stretch",
+                "size": {"width": 10, "height": 10},
+                "fill": "#FF0000",
+            },
+        ],
+        layout={"direction": "horizontal", "alignment": "stretch"},
+    )
+    dart = _gen(ir)
+    assert "double.infinity" not in dart

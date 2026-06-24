@@ -50,9 +50,12 @@ def plan(ir: dict) -> dict:
                 components.append({"name": comp_name, "root": extract(child)})
                 ref: dict = {"type": "component", "ref": comp_name}
                 # Preserve absolute position so a Stack parent can place the
-                # referenced component with a Positioned wrapper.
+                # referenced component with a Positioned wrapper, and the
+                # counter-axis fill flag so a flex parent still stretches it.
                 if "position" in child:
                     ref["position"] = child["position"]
+                if "layoutAlign" in child:
+                    ref["layoutAlign"] = child["layoutAlign"]
                 new_children.append(ref)
             elif child.get("type") == "frame":
                 new_children.append(extract(child))
