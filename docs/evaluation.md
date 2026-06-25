@@ -39,14 +39,10 @@ python -m agent.cli \
   --output flutter_app/lib/generated_screen.dart \
   --validate --visual-validate --geometry-validate --save-run
 
-# Reproduce Case 1 fully offline (no token) from the saved raw response +
-# saved reference PNG — yields the 87.2 / 0.35px numbers below:
-python -m agent.cli \
-  --input runs/2026-06-04-profile-posts/figma_raw.json \
-  --output flutter_app/lib/generated_screen.dart \
-  --validate \
-  --visual-validate --reference-image runs/2026-06-05-profile-posts/visual_reference.png \
-  --geometry-validate --save-run
+# Reproduce Case 1 fully offline (no token) — one command. Uses the committed
+# fixture examples/profile_posts_raw.json + docs/figma_reference.png and yields
+# the 87.2 / 0.35px numbers below:
+make eval
 
 # Aggregate metrics across saved runs/:
 python -m agent.metrics
@@ -56,7 +52,7 @@ python -m agent.metrics
 
 ## Case 1 — Profile Screen
 
-- **Source:** live Figma node `151:546` (`Profile/Posts`, file `CjqVljuG65EUroiUFhSwxT`); reproducible offline from `runs/2026-06-04-profile-posts/figma_raw.json`.
+- **Source:** live Figma node `151:546` (`Profile/Posts`, file `CjqVljuG65EUroiUFhSwxT`); reproducible offline via `make eval` from the committed `examples/profile_posts_raw.json`.
 - **Canvas:** 375 × 812 (mobile portrait).
 - **Generated components:** **19** (after structural dedup — 4 duplicate content blocks collapsed into 1, referenced 4×).
 - **flutter analyze:** ✅ **pass** (No issues found).

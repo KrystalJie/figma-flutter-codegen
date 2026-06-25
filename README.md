@@ -88,6 +88,7 @@ analyze it, and smoke-test that it renders, the same sequence CI runs:
 
 ```bash
 make demo          # generate -> flutter analyze -> golden smoke test
+make eval          # reproduce the Case 1 visual+geometry scores (no token)
 make help          # list all targets (test, generate, demos, clean, ...)
 ```
 

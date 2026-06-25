@@ -13,9 +13,14 @@ SAMPLE       ?= examples/figma_sample.json
 GEN_DIR      ?= $(FLUTTER_ROOT)/lib/generated
 DEMO_OUT     ?= $(GEN_DIR)/demo_screen.dart
 
+# Benchmark fixture for `make eval` (committed so it runs on a fresh clone).
+EVAL_INPUT   ?= examples/profile_posts_raw.json
+EVAL_REF     ?= docs/figma_reference.png
+EVAL_OUT     ?= $(GEN_DIR)/eval_screen.dart
+
 .DEFAULT_GOAL := help
 
-.PHONY: help setup test generate analyze smoke demo demos clean
+.PHONY: help setup test generate analyze smoke demo demos eval clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -40,6 +45,16 @@ smoke: ## Run the golden smoke test (every screen builds & renders)
 demo: generate analyze smoke ## One-command proof: generate -> analyze -> smoke
 	@echo ""
 	@echo "OK  generated $(DEMO_OUT), flutter analyze clean, smoke tests passed."
+
+eval: ## Reproduce the Case 1 visual + geometry scores offline (no token)
+	@mkdir -p $(GEN_DIR)
+	$(PYTHON) -m agent.cli \
+	  --input $(EVAL_INPUT) \
+	  --output $(EVAL_OUT) \
+	  --visual-validate --reference-image $(EVAL_REF) \
+	  --geometry-validate
+	@rm -f $(FLUTTER_ROOT)/test/visual_golden_test.dart
+	@rm -rf $(FLUTTER_ROOT)/test/visual_golden $(FLUTTER_ROOT)/test/visual_rects
 
 demos: ## Generate every example screen (Python only, no Flutter)
 	@mkdir -p $(GEN_DIR)

@@ -164,6 +164,17 @@ def _screen_geometry(plan: dict) -> tuple[str, int, int]:
     return screen_class, w, h
 
 
+def _lib_import_path(flutter_root: str, path: Path) -> str:
+    """Path used in `import 'package:flutter_app/...';`, relative to lib/ so an
+    output in a subdirectory (e.g. lib/generated/x.dart) imports correctly.
+    Falls back to the bare filename when the path is not under lib/."""
+    lib = Path(flutter_root, "lib").resolve()
+    try:
+        return path.resolve().relative_to(lib).as_posix()
+    except ValueError:
+        return path.name
+
+
 def _resolve_reference(
     args: argparse.Namespace, node_id: str | None, dest: Path
 ) -> Path | None:
@@ -215,7 +226,13 @@ def _run_visual_validate(
             print(f"warning: reference image not found: {reference}", file=sys.stderr)
             return
         screen_class, w, h = _screen_geometry(plan)
-        shot = screenshot.capture(args.flutter_root, screen_class, w, h, out_path.name)
+        shot = screenshot.capture(
+            args.flutter_root,
+            screen_class,
+            w,
+            h,
+            _lib_import_path(args.flutter_root, out_path),
+        )
         report = visual.compare(reference, shot)
     except (FigmaError, RuntimeError, OSError) as exc:
         print(f"warning: visual validation failed: {exc}", file=sys.stderr)
@@ -251,7 +268,11 @@ def _measure_geometry(
         screen_class, w, h = _screen_geometry(plan)
         keyed_path.write_text(codegen.generate(plan, keyed=True))
         json_path = screenshot.capture_rects(
-            args.flutter_root, screen_class, w, h, keyed_path.name
+            args.flutter_root,
+            screen_class,
+            w,
+            h,
+            _lib_import_path(args.flutter_root, keyed_path),
         )
         actual = geometry.load_rects(json.loads(json_path.read_text()))
         target = geometry.collect_target_rects(figma)

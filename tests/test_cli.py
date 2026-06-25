@@ -86,6 +86,22 @@ def test_make_llm_client_deepseek_with_key(monkeypatch: pytest.MonkeyPatch) -> N
     assert isinstance(cli._make_llm_client(), DeepSeekLLMClient)
 
 
+def test_lib_import_path_handles_subdirectory(tmp_path: Path) -> None:
+    root = tmp_path / "flutter_app"
+    (root / "lib" / "generated").mkdir(parents=True)
+    out = root / "lib" / "generated" / "eval_screen.dart"
+    assert cli._lib_import_path(str(root), out) == "generated/eval_screen.dart"
+    top = root / "lib" / "screen.dart"
+    assert cli._lib_import_path(str(root), top) == "screen.dart"
+
+
+def test_lib_import_path_falls_back_to_name_outside_lib(tmp_path: Path) -> None:
+    root = tmp_path / "flutter_app"
+    (root / "lib").mkdir(parents=True)
+    outside = tmp_path / "elsewhere" / "screen.dart"
+    assert cli._lib_import_path(str(root), outside) == "screen.dart"
+
+
 def test_writes_dart_file_for_sample(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
