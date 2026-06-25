@@ -160,6 +160,10 @@ repair), **visual fidelity** (mean `visual_score` / SSIM / pixel MAE from
 (component references ÷ distinct components in the plan). Metrics with no
 underlying data report `n/a` rather than a fabricated number.
 
+See **[docs/evaluation.md](docs/evaluation.md)** for the per-screen benchmark
+(Profile + Feed real nodes and the synthetic demos), with reference-vs-generated
+images and per-node geometry reports.
+
 ## What's supported
 
 - **Nodes:** frame, text, rectangle, image, ellipse, INSTANCE/GROUP/COMPONENT,
