@@ -13,7 +13,7 @@ regressions.
 
 > Scope: Flutter only, mobile portrait, static layout. See
 > [ARCHITECTURE.md](ARCHITECTURE.md) for the design rationale and
-> [CLAUDE.md](CLAUDE.md) for the step-by-step development log.
+> [docs/CHANGELOG.md](docs/CHANGELOG.md) for the step-by-step development log.
 
 ## Example
 

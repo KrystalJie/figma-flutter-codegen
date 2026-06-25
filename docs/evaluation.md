@@ -20,7 +20,7 @@ each case.
 
 > Geometry is the trustworthy fidelity signal (signed, per-element,
 > font-independent); the pixel `visual_score` is a coarse regression gate that
-> can't reward fine local fixes. See `ARCHITECTURE.md` / CLAUDE.md steps 23–27
+> can't reward fine local fixes. See `ARCHITECTURE.md` / [CHANGELOG](CHANGELOG.md) steps 23–27
 > for why.
 
 ## How to reproduce
@@ -87,7 +87,7 @@ Header               +0.0   +0.0   +1.04  +0.0
 Every deviation is `dx = dy = dh = 0` — only text **width** drifts (sub-pixel
 Inter glyph-advance rounding, worst on the longest string). Positions and
 heights are pixel-exact.
-This is the result of the deterministic line-height fix (CLAUDE.md step 27) and
+This is the result of the deterministic line-height fix (CHANGELOG step 27) and
 the node-visibility fix (step 28) that lifted the score from 79.1 → 87.2.
 
 ---
@@ -124,7 +124,7 @@ pipeline generalizes beyond the screen it was developed on (Case 1 = 87).
 
 Three structurally-different hand-authored fixtures, used to flush out codegen
 blind spots (each surfaced a real bug — `$`-escaping and auto-layout main-axis
-hug; CLAUDE.md step 35). All three: `flutter analyze` ✅ pass, render without
+hug; CHANGELOG step 35). All three: `flutter analyze` ✅ pass, render without
 overflow, real Inter glyphs.
 
 | Login (`examples/figma_login.json`) | Product grid (`examples/figma_product_grid.json`) | Settings (`examples/figma_settings.json`) |
