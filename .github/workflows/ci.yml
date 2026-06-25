@@ -6,7 +6,8 @@ on:
   pull_request:
 
 jobs:
-  test:
+  python-tests:
+    name: Python tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -22,3 +23,46 @@ jobs:
         run: pip install pillow numpy pytest
       - name: Run tests
         run: pytest -q
+
+  flutter:
+    name: Generate + analyze + smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pipeline dependencies
+        run: pip install pillow numpy
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: flutter pub get
+        working-directory: flutter_app
+        run: flutter pub get
+
+      # Prove the pipeline's output is real Flutter, not just that the
+      # committed file happens to compile: regenerate a screen end-to-end
+      # from a fixture, then analyze it. This is the project's Definition
+      # of Done (see CLAUDE.md).
+      - name: Generate a screen from the pipeline
+        run: >
+          python -m agent.cli
+          --input examples/figma_sample.json
+          --output flutter_app/lib/generated_screen.dart
+
+      - name: flutter analyze (generated app)
+        working-directory: flutter_app
+        run: flutter analyze
+
+      # Golden smoke test: pump the gallery and every generated screen and
+      # assert each builds/lays out without throwing (overflows fail here).
+      - name: flutter test (golden smoke)
+        working-directory: flutter_app
+        run: flutter test

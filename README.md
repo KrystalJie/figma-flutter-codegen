@@ -87,7 +87,7 @@ Run from source — the only runtime dependencies are Pillow and numpy:
 
 ```bash
 pip install pillow numpy pytest
-pytest                    # 261 tests, no network or Flutter required
+pytest                    # 266 tests, no network or Flutter required
 
 # Generate a screen from the bundled sample:
 python -m agent.cli \
@@ -96,6 +96,14 @@ python -m agent.cli \
 ```
 
 The generated file passes `flutter analyze` cleanly inside `flutter_app/`.
+
+**How do we know the generated Flutter actually works?** [CI](.github/workflows/ci.yml)
+has two jobs: the Python suite, and a Flutter job that installs the SDK,
+regenerates a screen from a fixture through the pipeline, runs `flutter analyze`
+on it, and runs a golden **smoke test** ([widget_test.dart](flutter_app/test/widget_test.dart))
+that pumps the gallery and every generated screen and asserts each builds and
+lays out without throwing (a `RenderFlex` overflow fails the build). So both
+"the code is valid" and "the code renders" are checked on every push.
 
 Optionally install as a package (needs a modern pip/setuptools) to get the
 `figma2flutter` command:
